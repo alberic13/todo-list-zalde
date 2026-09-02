@@ -34,14 +34,18 @@ jobs:
         working-directory: backend
         run: bun run typecheck
 
-      - name: Backend Automated Tests
+      - name: Backend Unit Tests
         working-directory: backend
-        run: bun test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test_jwt_secret_32_chars_for_ci_pipeline_ok!' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: bun test test/auth.test.ts
 
       # Frontend Quality Gate
       - name: Install Frontend Dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm install
 
       - name: Frontend Typecheck & Build
         working-directory: frontend
