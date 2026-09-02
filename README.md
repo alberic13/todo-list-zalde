@@ -2,43 +2,78 @@
 
 Aplikasi manajemen tugas modern berbasis **AI & RAG (Retrieval-Augmented Generation)** dengan arsitektur type-safe dan performa tinggi.
 
+[![CI/CD Pipeline](https://github.com/alberic13/todo-list-zalde/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/alberic13/todo-list-zalde/actions/workflows/ci-cd.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-v1.3+-black.svg?logo=bun)](https://bun.sh)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB.svg?logo=react)](https://react.dev)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4.0-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com)
+[![PostgreSQL](https://img.shields.io/badge/Neon-PostgreSQL%20(pgvector)-00E599.svg?logo=postgresql)](https://neon.tech)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash%20%2B%20Embeddings-8E75B2.svg?logo=google-gemini)](https://ai.google.dev)
+[![Vercel Deployment](https://img.shields.io/badge/Deploy-Vercel-000000.svg?logo=vercel)](https://todo-list-zalde.vercel.app/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## 🌐 Live Demo & Akses Aplikasi
+
+| Layanan | URL Akses | Deskripsi |
+|---|---|---|
+| 🖥️ **Web App (Frontend)** | [https://todo-list-zalde.vercel.app/](https://todo-list-zalde.vercel.app/) | Dashboard Kanban, Task CRUD, AI Chat Copilot |
+| 📚 **Swagger API Docs** | [https://todo-list-zalde-backend.vercel.app/swagger](https://todo-list-zalde-backend.vercel.app/swagger) | Dokumentasi interaktif OpenAPI / Swagger Elysia |
+| ⚡ **Backend Health Endpoint** | [https://todo-list-zalde-backend.vercel.app/](https://todo-list-zalde-backend.vercel.app/) | Root JSON health check status |
+
+### 👤 Kredensial Akun Demo (Pre-seeded di Neon DB):
+- **Email**: `demo@zalde.com`
+- **Password**: `Password123!`
+- *(Tersedia juga tombol **Login Cepat** di halaman login untuk autofill otomatis)*
+
 ---
 
 ## 🛠️ Tech Stack
 
-- **Backend**: [Bun](https://bun.sh) + [Elysia.js](https://elysiajs.com) + [Drizzle ORM](https://orm.drizzle.team) + PostgreSQL (`pgvector`)
+- **Backend**: [Bun](https://bun.sh) + [Elysia.js](https://elysiajs.com) + [Drizzle ORM](https://orm.drizzle.team) + PostgreSQL (`pgvector`) di [Neon](https://neon.tech)
 - **Frontend**: [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) + [Vite](https://vitejs.dev) + [Tailwind CSS v4](https://tailwindcss.com) + [Lucide Icons](https://lucide.dev)
-- **AI & RAG**: Google Gemini API (`gemini-embedding-001` 768-dim & `gemini-3.5-flash-lite` / `gemini-3.6-flash`)
-- **Deployment**: Vercel Serverless + GitHub Actions
+- **AI & RAG Engine**: Google Gemini API (`gemini-embedding-001` 768-dim normalized embeddings + `gemini-3.5-flash-lite` / `gemini-3.6-flash`)
+- **CI/CD & Cloud Hosting**: Vercel Serverless (Bun & Node runtime) + GitHub Actions CI/CD Pipeline
 
 ---
 
-## 📁 Struktur Direktori
+## 📁 Struktur Direktori Workspace
 
 ```text
 todo-list-zalde/
-├── .github/workflows/ci-cd.yml # GitHub Actions CI/CD Pipeline
-├── backend/                    # Bun + Elysia.js + Drizzle ORM
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml           # GitHub Actions Quality Gate & CI/CD Pipeline
+├── backend/                    # Bun + Elysia.js + Drizzle ORM + pgvector
 │   ├── src/
-│   │   ├── config/             # DB & Environment config
-│   │   ├── controllers/        # Auth, Task, Category handlers
-│   │   ├── middlewares/        # JWT Auth & Global Error handlers
-│   │   ├── models/             # Drizzle PostgreSQL + pgvector schemas
-│   │   ├── services/           # Business logic
-│   │   └── index.ts            # Elysia Server & Swagger API
-│   ├── drizzle.config.ts
+│   │   ├── config/             # DB (Neon), AI (Gemini client), & Env config
+│   │   ├── controllers/        # Auth, Task, Category, AI endpoints
+│   │   ├── middlewares/        # JWT Auth & Centralized Error handlers
+│   │   ├── models/             # Drizzle PostgreSQL schemas & vector768 types
+│   │   ├── services/           # Auth, Task, Category, Embedding, & RAG logic
+│   │   ├── utils/              # Standardized response formatters
+│   │   └── index.ts            # Elysia Server & Swagger API entry point
+│   ├── test/                   # Bun unit & E2E integration test suites
+│   ├── drizzle.config.ts       # Drizzle Kit migration configuration
+│   ├── vercel.json             # Backend Bun runtime serverless configuration
 │   └── package.json
-├── frontend/                   # React 19 + Tailwind CSS v4 + Vite
+├── frontend/                   # React 19 + TypeScript + Tailwind CSS v4 + Vite
+│   ├── public/                 # Static assets & icons
 │   ├── src/
-│   │   ├── components/         # UI, Layout, Tasks, Stats
-│   │   ├── hooks/              # useAuth, useTasks
-│   │   ├── pages/              # Dashboard, AuthPage
-│   │   ├── services/           # API Client
-│   │   └── types/              # TypeScript definitions
+│   │   ├── components/         # UI Elements, Layout (Navbar), Tasks (Card & Modal), AI Copilot
+│   │   ├── hooks/              # useAuth, useTasks custom state hooks
+│   │   ├── pages/              # Dashboard (Kanban board) & AuthPage (Login/Register)
+│   │   ├── services/           # Axios/Fetch API client & error handling
+│   │   ├── types/              # TypeScript definitions & data contracts
+│   │   └── utils/              # Date formatters & helpers
 │   ├── index.html
-│   └── vite.config.ts
-├── vercel.json                 # Vercel Deployment Orchestration
-├── PRD.md                      # Product Requirement Document
+│   ├── vite.config.ts
+│   ├── vercel.json             # Frontend SPA route rewrites configuration
+│   └── package.json
+├── vercel.json                 # Multi-service monorepo deployment orchestration
+├── PRD.md                      # Product Requirement Document & Specifications
+├── package.json                # Root workspace orchestrator (lint, test, build scripts)
 └── README.md
 ```
 
@@ -49,25 +84,23 @@ todo-list-zalde/
 ### 1. Prasyarat
 - [Bun](https://bun.sh) (v1.1+)
 - [Node.js](https://nodejs.org) (v20+)
-- PostgreSQL Database (Neon / Supabase / Local)
+- PostgreSQL Database ([Neon](https://neon.tech) / Local Postgres)
 
 ### 2. Setup Environment
 Salin file `.env.example` ke `backend/.env`:
 ```bash
 cp .env.example backend/.env
 ```
+Sesuaikan `DATABASE_URL`, `JWT_SECRET`, dan `GEMINI_API_KEY`.
 
-Sesuaikan `DATABASE_URL` dan `JWT_SECRET`.
-
-### 3. Setup Database & Seed Data Dummy
+### 3. Setup Database & Seed Data Dummy ke Neon
 ```bash
 cd backend
 bun run db:push
 bun run db:seed
 ```
-*Akun Demo Default: `demo@zalde.com` / `Password123!`*
 
-### 4. Menjalankan Backend
+### 4. Menjalankan Backend Lokal
 ```bash
 cd backend
 bun install
@@ -76,7 +109,7 @@ bun run dev
 - API Server: `http://localhost:3001`
 - Swagger API Docs: `http://localhost:3001/swagger`
 
-### 5. Menjalankan Frontend
+### 5. Menjalankan Frontend Lokal
 ```bash
 cd frontend
 npm install
@@ -105,7 +138,7 @@ npm run test:all
 | Test Suite | File Uji | Status | Cakupan |
 |---|---|---|---|
 | **Backend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
-| **Frontend Typecheck** | `tsc -b && vite build` | ✅ PASS | 0 Type Error, Build Sukses (4.3s) |
+| **Frontend Typecheck** | `tsc -b && vite build` | ✅ PASS | 0 Type Error, Build Sukses (3.7s) |
 | **API & Security** | `test/auth.test.ts` | ✅ PASS (4/4) | Standardized JSON Response, Auth Guard, Health Check |
 | **E2E Task Flow** | `test/e2e.test.ts` | ✅ PASS (4/4) | Register ➔ Login ➔ Task & Subtasks CRUD ➔ Stats |
 | **RAG & Vector Search** | `test/rag.test.ts` | ✅ PASS (2/2) | Text Chunking & L2-Normalized Vector Embeddings |
@@ -142,4 +175,4 @@ Ran 10 tests across 3 files. [1.70s]
 
 - [x] **Fase 1**: Core Foundation, Auth JWT, Drizzle Schema, Task CRUD, List & Kanban View.
 - [x] **Fase 2**: RAG Integration, `pgvector` Semantic Search, Gemini Task Breakdown, AI Chat Copilot Drawer.
-- [ ] **Fase 3**: Automated CI/CD Data Pipeline & Production Vercel Deployment.
+- [x] **Fase 3**: Automated CI/CD Data Pipeline & Production Vercel + Neon DB Deployment.
