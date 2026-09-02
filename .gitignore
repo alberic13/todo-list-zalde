@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+.bun/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+*.env
+backend/.env
+frontend/.env
+
+# Build Output & Caches
+dist/
+*/dist/
+**/dist/
+build/
+*/build/
+**/build/
+.output/
+.vercel/
+.turbo/
+*.tsbuildinfo
+
+# Logs & Diagnostics
+*.log
+npm-debug.log*
+yarn-debug.log*
+bun.log
+yarn-error.log*
+
+# Database & Local Storage
+*.sqlite
+*.sqlite-journal
+*.db
+
+# IDE & OS Artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
