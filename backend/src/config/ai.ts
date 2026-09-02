@@ -1,26 +1,30 @@
 import { env } from "./env";
 
 export class GeminiClient {
-  private static apiKey = env.GEMINI_API_KEY;
+  private static getApiKey(): string {
+    return env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+  }
 
   /**
-   * Fast vector embedding generator using direct gemini-embedding-001
+   * Fast vector embedding generator using gemini-embedding-001 with 768 output dimensions
    */
   static async generateEmbedding(text: string): Promise<number[]> {
-    if (!this.apiKey) {
+    const apiKey = this.getApiKey();
+    if (!apiKey) {
       return this.generateFallbackEmbedding(text);
     }
 
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${this.apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${apiKey}`;
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(6000), // 6s timeout
+        signal: AbortSignal.timeout(8000), // 8s timeout
         body: JSON.stringify({
           content: {
             parts: [{ text }],
           },
+          outputDimensionality: 768,
         }),
       });
 
@@ -31,25 +35,32 @@ export class GeminiClient {
         }
       }
     } catch (err) {
-      console.warn("Embedding fallback triggered:", err);
+      // Graceful fallback to mock vector
     }
 
     return this.generateFallbackEmbedding(text);
   }
 
   /**
-   * Ultra-fast text response using gemini-3.5-flash with 0 thinking latency
+   * Ultra-fast text response using lightweight, low-latency Gemini Flash Lite models (<1s)
    */
   static async generateContent(prompt: string, systemInstruction?: string): Promise<string> {
-    if (!this.apiKey) {
+    const apiKey = this.getApiKey();
+    if (!apiKey) {
       return "⚠️ [Demo Mode]: Masukkan GEMINI_API_KEY di backend/.env untuk mengaktifkan AI.";
     }
 
-    const candidateModels = ["gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash"];
+    // Prioritized by lowest latency and high availability
+    const candidateModels = [
+      "gemini-3.5-flash-lite",
+      "gemini-flash-lite-latest",
+      "gemini-3.6-flash",
+      "gemini-3.1-flash-lite",
+    ];
 
     for (const model of candidateModels) {
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const body: any = {
           contents: [
             {
@@ -60,10 +71,7 @@ export class GeminiClient {
           generationConfig: {
             temperature: 0.6,
             topP: 0.9,
-            maxOutputTokens: 800,
-            thinkingConfig: {
-              thinkingBudget: 0, // Disable thinking delay for instant responses
-            },
+            maxOutputTokens: 1000,
           },
         };
 
@@ -76,7 +84,7 @@ export class GeminiClient {
         const response = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          signal: AbortSignal.timeout(8000), // 8s timeout safeguard
+          signal: AbortSignal.timeout(10000), // 10s timeout
           body: JSON.stringify(body),
         });
 
@@ -87,7 +95,7 @@ export class GeminiClient {
           if (text) return text.trim();
         }
       } catch (err) {
-        // Try next model candidate
+        // Fallback immediately to next available candidate model
       }
     }
 
