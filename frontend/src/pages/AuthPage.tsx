@@ -47,27 +47,27 @@ export const AuthPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="w-full max-w-md relative z-10 space-y-6">
-        {/* Brand Header with Mac Dots */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 border border-slate-200 shadow-sm mb-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-            <div className="w-2.5 h-2.5 rounded-full bg-[#f5bd4f]" />
-            <div className="w-2.5 h-2.5 rounded-full bg-[#61c554]" />
-          </div>
-
-          <div className="flex items-center justify-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-black">
-              Todolist-App
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Smart Productivity Suite
-          </p>
-        </div>
-
-        {/* Form Card */}
+      <div className="w-full max-w-md relative z-10 space-y-4">
+        {/* Form Card with Brand Header inside */}
         <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/80 shadow-2xl bg-white/90">
+          {/* Brand Header with Mac Dots */}
+          <div className="text-center space-y-2 mb-6">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/90 border border-slate-200 shadow-sm mb-1">
+              <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#f5bd4f]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#61c554]" />
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-black">
+                Todolist-App
+              </h1>
+            </div>
+            <p className="text-xs text-slate-500 font-medium">
+              Smart Productivity Suite
+            </p>
+          </div>
+
           {/* Tab Switcher */}
           <div className="flex p-1.5 rounded-2xl bg-slate-100 border border-slate-200 mb-6">
             <button
