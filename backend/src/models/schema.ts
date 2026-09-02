@@ -11,22 +11,24 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-// Custom vector type for pgvector 768 dimensions (Gemini text-embedding-004)
+// Universal 768-dimension vector storage compatible with all PostgreSQL environments
 export const vector768 = customType<{ data: number[]; driverData: string }>({
   dataType() {
-    return "vector(768)";
+    return "jsonb";
   },
   toDriver(value: number[]): string {
-    return `[${value.join(",")}]`;
+    return JSON.stringify(value);
   },
   fromDriver(value: unknown): number[] {
     if (typeof value === "string") {
-      return value
-        .replace(/^\[|\]$/g, "")
-        .split(",")
-        .map(Number);
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
     }
-    return (value as number[]) || [];
+    if (Array.isArray(value)) return value;
+    return [];
   },
 });
 

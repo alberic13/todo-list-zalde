@@ -31,20 +31,43 @@ export async function request<T>(
 
   const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    throw new ApiError(
+      "Tidak dapat terhubung ke server backend (port 3001). Pastikan server backend sedang berjalan (`cd backend && bun run dev`).",
+      0,
+      err.message
+    );
+  }
 
-  const data: ApiResponse<T> = await response.json().catch(() => ({
-    success: false,
-    message: "Failed to parse JSON response from server",
-    data: null as any,
-    errors: null,
-  }));
+  let data: ApiResponse<T>;
+  const rawText = await response.text();
+
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    data = {
+      success: false,
+      message:
+        rawText && rawText.length < 200
+          ? rawText
+          : `Terjadi kendala pada server backend (HTTP ${response.status}). Periksa koneksi Database PostgreSQL di backend/.env.`,
+      data: null as any,
+      errors: null,
+    };
+  }
 
   if (!response.ok || !data.success) {
-    throw new ApiError(data.message || `HTTP Error ${response.status}`, response.status, data.errors);
+    throw new ApiError(
+      data.message || `HTTP Error ${response.status}`,
+      response.status,
+      data.errors
+    );
   }
 
   return data.data;
