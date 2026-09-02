@@ -55,8 +55,8 @@ export const app = new Elysia()
   .use(taskController)
   .use(aiController);
 
-// Listen when executed directly
-if (process.env.NODE_ENV !== "test") {
+// Listen when executed directly (skip on Vercel Serverless or in Test)
+if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
   app.listen(env.PORT, () => {
     console.log(`🦊 Elysia server is running at http://localhost:${env.PORT}`);
     console.log(`📚 Swagger documentation at http://localhost:${env.PORT}/swagger`);
