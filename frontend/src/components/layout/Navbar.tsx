@@ -3,35 +3,23 @@ import { useAuth } from "../../hooks/useAuth";
 import { Button } from "../ui/Button";
 import {
   CheckSquare,
-  Sparkles,
-  Plus,
   LogOut,
   User as UserIcon,
-  LayoutList,
-  Kanban,
   Search,
 } from "lucide-react";
 
 export interface NavbarProps {
-  viewMode: "list" | "kanban";
-  onViewModeChange: (mode: "list" | "kanban") => void;
-  onOpenCreateTask: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   isSemanticSearch: boolean;
   onToggleSemanticSearch: () => void;
-  onOpenAiDrawer: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  viewMode,
-  onViewModeChange,
-  onOpenCreateTask,
   searchQuery,
   onSearchChange,
   isSemanticSearch,
   onToggleSemanticSearch,
-  onOpenAiDrawer,
 }) => {
   const { user, logout } = useAuth();
 
@@ -46,15 +34,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-base tracking-tight text-white">
-                Zalde<span className="text-indigo-400">Todo</span>
+                Todolist<span className="text-indigo-400">-App</span>
               </span>
-              <button
-                onClick={onOpenAiDrawer}
-                className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 border border-indigo-500/30 hover:border-purple-400/50 transition-all cursor-pointer"
-                title="Buka AI Copilot Drawer"
-              >
-                <Sparkles className="w-2.5 h-2.5" /> AI
-              </button>
             </div>
             <p className="text-[11px] text-slate-400 font-medium">Smart Productivity Suite</p>
           </div>
@@ -68,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="text"
               placeholder={
                 isSemanticSearch
-                  ? "✨ Semantic Search: Cari berdasarkan makna/konteks..."
+                  ? "AI Search aktif: Cari berdasarkan makna / konteks..."
                   : "Cari judul, deskripsi, atau kategori tugas..."
               }
               value={searchQuery}
@@ -85,15 +66,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onToggleSemanticSearch}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
                   isSemanticSearch
                     ? "bg-purple-600 text-white shadow-sm"
                     : "bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-750"
                 }`}
-                title="Beralih antara Keyword Search & AI Semantic Search"
+                title="Beralih antara Keyword Search & AI Search"
               >
-                <Sparkles className="w-3 h-3 text-purple-300" />
-                <span>AI Vektor</span>
+                <span>AI Search</span>
               </button>
               {searchQuery && (
                 <button
@@ -109,46 +89,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Actions & Profile */}
         <div className="flex items-center gap-2.5">
-          {/* View Mode Toggle */}
-          <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
-            <button
-              onClick={() => onViewModeChange("list")}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                viewMode === "list"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-              title="List View"
-            >
-              <LayoutList className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">List</span>
-            </button>
-            <button
-              onClick={() => onViewModeChange("kanban")}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                viewMode === "kanban"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-              title="Kanban Board"
-            >
-              <Kanban className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Kanban</span>
-            </button>
-          </div>
-
-          {/* Add Task Button */}
-          <Button
-            onClick={onOpenCreateTask}
-            size="sm"
-            leftIcon={<Plus className="w-4 h-4" />}
-            className="shadow-indigo-600/30"
-          >
-            <span className="hidden sm:inline">Tugas Baru</span>
-          </Button>
-
           {/* User Profile & Logout */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
                 <UserIcon className="w-4 h-4" />

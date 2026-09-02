@@ -4,66 +4,73 @@ import { Badge } from "../ui/Badge";
 import { formatRelativeDate, isOverdue } from "../../utils/date";
 import {
   Calendar,
-  CheckCircle2,
-  Circle,
   MoreVertical,
   Trash2,
   Edit2,
   ChevronDown,
   ChevronUp,
   Check,
-  Clock,
-  ArrowRight,
+  GripVertical,
 } from "lucide-react";
 
 export interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
-  onStatusChange: (id: string, status: string) => void;
+  onStatusChange?: (id: string, status: string) => void;
   onToggleSubtask: (subtaskId: string, taskId: string) => void;
+  isDragging?: boolean;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   onEdit,
   onDelete,
-  onStatusChange,
   onToggleSubtask,
 }) => {
   const [showSubtasks, setShowSubtasks] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [isDragged, setIsDragged] = useState(false);
 
   const subtasks = task.subtasks || [];
   const completedSubtasks = subtasks.filter((s) => s.isCompleted).length;
   const overdue = task.status !== "done" && isOverdue(task.dueDate);
 
-  const handleCheckboxClick = () => {
-    const nextStatus = task.status === "done" ? "todo" : "done";
-    onStatusChange(task.id, nextStatus);
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData("text/plain", task.id);
+    e.dataTransfer.effectAllowed = "move";
+    setIsDragged(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragged(false);
   };
 
   return (
-    <div className="relative group rounded-2xl glass-card border border-slate-800/80 p-4 transition-all duration-200 hover:border-slate-700/80 hover:shadow-xl bg-slate-900/40">
-      <div className="flex items-start gap-3">
-        {/* Checkbox */}
-        <button
-          onClick={handleCheckboxClick}
-          className="mt-0.5 text-slate-500 hover:text-indigo-400 transition-colors shrink-0"
-          title={task.status === "done" ? "Tandai belum selesai" : "Tandai selesai"}
-        >
-          {task.status === "done" ? (
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-500/20" />
-          ) : (
-            <Circle className="w-5 h-5" />
-          )}
-        </button>
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      className={`relative group rounded-2xl glass-card border border-slate-800/80 p-4 transition-all duration-200 hover:border-slate-700/80 hover:shadow-xl bg-slate-900/50 cursor-grab active:cursor-grabbing select-none ${
+        isDragged
+          ? "opacity-40 scale-95 border-indigo-500/50 shadow-indigo-500/20"
+          : "hover:scale-[1.01] hover:-translate-y-0.5"
+      }`}
+    >
+      <div className="flex items-start gap-2.5">
+        {/* Drag Handle Indicator */}
+        <div className="mt-0.5 text-slate-600 group-hover:text-slate-400 transition-colors shrink-0">
+          <GripVertical className="w-4 h-4" />
+        </div>
 
         {/* Main Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <h4
-              onClick={() => onEdit(task)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(task);
+              }}
               className={`text-sm font-semibold text-slate-100 cursor-pointer hover:text-indigo-300 transition-colors truncate ${
                 task.status === "done" ? "line-through text-slate-500" : ""
               }`}
@@ -74,7 +81,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {/* Action Menu */}
             <div className="relative shrink-0">
               <button
-                onClick={() => setShowMenu(!showMenu)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
                 className="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-slate-800"
               >
                 <MoreVertical className="w-4 h-4" />
@@ -84,9 +95,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 <>
                   <div
                     className="fixed inset-0 z-10"
-                    onClick={() => setShowMenu(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMenu(false);
+                    }}
                   />
-                  <div className="absolute right-0 top-full mt-1 w-40 rounded-xl glass-panel bg-slate-900 shadow-xl border border-slate-700/80 py-1.5 z-20 animate-in fade-in zoom-in-95 duration-150">
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-0 top-full mt-1 w-40 rounded-xl glass-panel bg-slate-900 shadow-xl border border-slate-700/80 py-1.5 z-20 animate-in fade-in zoom-in-95 duration-150"
+                  >
                     <button
                       onClick={() => {
                         setShowMenu(false);
@@ -96,45 +113,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     >
                       <Edit2 className="w-3.5 h-3.5" /> Edit Detail
                     </button>
-
-                    <div className="my-1 border-t border-slate-800" />
-
-                    <div className="px-3 py-1 text-[10px] uppercase font-semibold text-slate-500">
-                      Ubah Status
-                    </div>
-                    {task.status !== "todo" && (
-                      <button
-                        onClick={() => {
-                          setShowMenu(false);
-                          onStatusChange(task.id, "todo");
-                        }}
-                        className="w-full text-left px-3 py-1 text-xs text-slate-300 hover:bg-slate-800 flex items-center gap-2"
-                      >
-                        <ArrowRight className="w-3.5 h-3.5 text-slate-400" /> Belum Mulai
-                      </button>
-                    )}
-                    {task.status !== "in_progress" && (
-                      <button
-                        onClick={() => {
-                          setShowMenu(false);
-                          onStatusChange(task.id, "in_progress");
-                        }}
-                        className="w-full text-left px-3 py-1 text-xs text-slate-300 hover:bg-slate-800 flex items-center gap-2"
-                      >
-                        <Clock className="w-3.5 h-3.5 text-indigo-400" /> Sedang Berjalan
-                      </button>
-                    )}
-                    {task.status !== "done" && (
-                      <button
-                        onClick={() => {
-                          setShowMenu(false);
-                          onStatusChange(task.id, "done");
-                        }}
-                        className="w-full text-left px-3 py-1 text-xs text-slate-300 hover:bg-slate-800 flex items-center gap-2"
-                      >
-                        <Check className="w-3.5 h-3.5 text-emerald-400" /> Selesai
-                      </button>
-                    )}
 
                     <div className="my-1 border-t border-slate-800" />
 
@@ -195,7 +173,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {/* Subtasks Counter Trigger */}
             {subtasks.length > 0 && (
               <button
-                onClick={() => setShowSubtasks(!showSubtasks)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSubtasks(!showSubtasks);
+                }}
                 className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-slate-750 text-indigo-300 border border-slate-700/60 transition-colors"
               >
                 <span>
@@ -216,7 +198,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               {subtasks.map((st: Subtask) => (
                 <div
                   key={st.id}
-                  onClick={() => onToggleSubtask(st.id, task.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSubtask(st.id, task.id);
+                  }}
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800/40 cursor-pointer text-xs group/sub"
                 >
                   <div

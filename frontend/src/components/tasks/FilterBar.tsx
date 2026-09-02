@@ -1,6 +1,6 @@
 import React from "react";
 import { Category, TaskFilters } from "../../types";
-import { Filter, ArrowUpDown, Sparkles } from "lucide-react";
+import { Filter, ArrowUpDown, Sparkles, Calendar } from "lucide-react";
 
 export interface FilterBarProps {
   filters: TaskFilters;
@@ -24,6 +24,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     { key: "done", label: "Selesai" },
   ];
 
+  const todayJakarta = new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date());
+
   return (
     <div className="space-y-3">
       {/* Mobile search bar if on small screen */}
@@ -31,7 +39,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         <div className="relative flex-1">
           <input
             type="text"
-            placeholder={isSemanticSearch ? "✨ Semantic Search..." : "Cari tugas..."}
+            placeholder={isSemanticSearch ? "AI Search aktif: Cari berdasarkan makna / konteks..." : "Cari tugas..."}
             value={filters.search || ""}
             onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
             className="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-800 text-slate-200 placeholder:text-slate-500"
@@ -73,6 +81,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
         {/* Dropdowns (Priority & Sort) */}
         <div className="flex items-center gap-2">
+          {/* Today Date Badge (Asia/Jakarta) */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 font-medium shrink-0 shadow-sm">
+            <Calendar className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+            <span>{todayJakarta}</span>
+          </div>
+
           {/* Priority Select */}
           <div className="relative flex items-center">
             <Filter className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none" />

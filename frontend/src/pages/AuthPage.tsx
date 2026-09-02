@@ -4,7 +4,6 @@ import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import {
   CheckSquare,
-  Sparkles,
   Mail,
   Lock,
   User,
@@ -45,7 +44,7 @@ export const AuthPage: React.FC = () => {
     setName("Zalde Developer");
     setEmail("demo@zalde.dev");
     setPassword("password123");
-    setIsRegister(true);
+    setIsRegister(false);
   };
 
   return (
@@ -62,14 +61,11 @@ export const AuthPage: React.FC = () => {
           </div>
           <div className="flex items-center justify-center gap-2">
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Zalde<span className="text-indigo-400">Todo</span>
+              Todolist<span className="text-indigo-400">-App</span>
             </h1>
-            <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 border border-indigo-500/30">
-              <Sparkles className="w-3 h-3" /> AI
-            </span>
           </div>
           <p className="text-xs text-slate-400">
-            Next-Gen AI-Powered Todo & Task Productivity Suite
+            Smart Productivity Suite
           </p>
         </div>
 
@@ -166,7 +162,7 @@ export const AuthPage: React.FC = () => {
               onClick={handleDemoFill}
               className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-medium py-1 px-3 rounded-lg hover:bg-indigo-500/10 transition-colors"
             >
-              <Zap className="w-3.5 h-3.5" /> Isi Otomatis Akun Demo
+              <Zap className="w-3.5 h-3.5" /> Login Cepat
             </button>
           </div>
         </div>

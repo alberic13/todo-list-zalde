@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { aiService } from "../../services/aiService";
 import { Task } from "../../types";
 import {
-  Sparkles,
   Send,
   Bot,
   User,
@@ -37,7 +36,7 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     {
       id: "welcome",
       sender: "ai",
-      text: "Halo! Saya **Zalde AI Copilot**. Saya dapat melihat konteks seluruh tugas Anda dan membantu merencanakan prioritas harian. Ada yang bisa saya bantu hari ini?",
+      text: "Halo! Saya **Zalde AI**. Saya dapat melihat konteks seluruh tugas Anda dan membantu merencanakan prioritas harian. Ada yang bisa saya bantu hari ini?",
       timestamp: new Date(),
     },
   ]);
@@ -48,8 +47,7 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
 
   const quickPrompts = [
     "Apa tugas paling prioritas yang harus saya selesaikan hari ini?",
-    "Ringkas tugas yang mendekati deadline atau terlambat",
-    "Bantu saya membuat rencana urutan pengerjaan tugas",
+  
   ];
 
   useEffect(() => {
@@ -125,12 +123,9 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-white">Zalde AI Copilot</h3>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" /> RAG
-              </span>
+              <h3 className="text-xs font-bold text-white">Zalde AI</h3>
             </div>
-            <p className="text-[10px] text-slate-400">Terkoneksi ke Knowledge Tugas Anda</p>
+            <p className="text-[10px] text-slate-400">Asisten Pintar Produktivitas Tugas Anda</p>
           </div>
         </div>
 
