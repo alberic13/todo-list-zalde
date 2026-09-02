@@ -31,7 +31,9 @@ export class GeminiClient {
       if (response.ok) {
         const data = (await response.json()) as any;
         if (data.embedding?.values && data.embedding.values.length > 0) {
-          return data.embedding.values;
+          const rawValues: number[] = data.embedding.values;
+          const norm = Math.sqrt(rawValues.reduce((sum, val) => sum + val * val, 0)) || 1;
+          return rawValues.map((val) => val / norm);
         }
       }
     } catch (err) {

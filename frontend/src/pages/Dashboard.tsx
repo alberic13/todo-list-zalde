@@ -22,7 +22,9 @@ export const Dashboard: React.FC = () => {
     updateTask,
     updateStatus,
     deleteTask,
+    addSubtask,
     toggleSubtask,
+    deleteSubtask,
     createCategory,
   } = useTasks();
 
@@ -115,6 +117,9 @@ export const Dashboard: React.FC = () => {
         categories={categories}
         onSubmit={handleModalSubmit}
         onAddCategory={createCategory}
+        onToggleSubtask={toggleSubtask}
+        onAddSubtask={addSubtask}
+        onDeleteSubtask={deleteSubtask}
       />
 
       {/* Floating AI Trigger Button */}

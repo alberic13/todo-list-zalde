@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Task, Category, TaskPriority, TaskStatus } from "../../types";
-import { aiService } from "../../services/aiService";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import {
-  Sparkles,
   Plus,
   Trash2,
   Tag,
-  CheckCircle,
-  Loader2,
+  Check,
 } from "lucide-react";
 
 export interface TaskModalProps {
@@ -21,6 +18,15 @@ export interface TaskModalProps {
   categories: Category[];
   onSubmit: (payload: any) => Promise<void>;
   onAddCategory: (name: string, colorHex?: string) => Promise<Category>;
+  onToggleSubtask?: (subtaskId: string, taskId: string) => Promise<void> | void;
+  onAddSubtask?: (taskId: string, title: string) => Promise<any> | void;
+  onDeleteSubtask?: (subtaskId: string, taskId: string) => Promise<void> | void;
+}
+
+interface LocalSubtaskItem {
+  id?: string;
+  title: string;
+  isCompleted: boolean;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -28,9 +34,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   taskToEdit,
   defaultStatus = "todo",
-  categories,
+  categories = [],
   onSubmit,
   onAddCategory,
+  onToggleSubtask,
+  onAddSubtask,
+  onDeleteSubtask,
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -38,31 +47,50 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [categoryId, setCategoryId] = useState<string>("");
   const [dueDate, setDueDate] = useState<string>("");
-  const [subtasks, setSubtasks] = useState<string[]>([]);
+  const [subtasks, setSubtasks] = useState<LocalSubtaskItem[]>([]);
   const [newSubtaskInput, setNewSubtaskInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [showAddCat, setShowAddCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [newCatColor, setNewCatColor] = useState("#6366f1");
 
   useEffect(() => {
     if (taskToEdit) {
-      setTitle(taskToEdit.title);
+      setTitle(taskToEdit.title || "");
       setDescription(taskToEdit.description || "");
-      setStatus(taskToEdit.status);
-      setPriority(taskToEdit.priority);
+      setStatus(taskToEdit.status || defaultStatus || "todo");
+      setPriority(taskToEdit.priority || "medium");
       setCategoryId(taskToEdit.categoryId || "");
-      setDueDate(
-        taskToEdit.dueDate
-          ? new Date(taskToEdit.dueDate).toISOString().split("T")[0]
-          : ""
-      );
-      setSubtasks(taskToEdit.subtasks?.map((s) => s.title) || []);
+
+      let safeDate = "";
+      if (taskToEdit.dueDate) {
+        try {
+          const d = new Date(taskToEdit.dueDate);
+          if (!isNaN(d.getTime())) {
+            safeDate = d.toISOString().split("T")[0];
+          }
+        } catch {
+          safeDate = "";
+        }
+      }
+      setDueDate(safeDate);
+
+      const raw = taskToEdit.subtasks || [];
+      if (Array.isArray(raw)) {
+        setSubtasks(
+          raw.map((s: any) => ({
+            id: typeof s === "object" ? s?.id : undefined,
+            title: typeof s === "object" ? s?.title || "" : String(s),
+            isCompleted: typeof s === "object" ? Boolean(s?.isCompleted) : false,
+          }))
+        );
+      } else {
+        setSubtasks([]);
+      }
     } else {
       setTitle("");
       setDescription("");
-      setStatus(defaultStatus);
+      setStatus(defaultStatus || "todo");
       setPriority("medium");
       setCategoryId("");
       setDueDate("");
@@ -70,34 +98,67 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }
   }, [taskToEdit, defaultStatus, isOpen]);
 
-  const handleAddSubtask = () => {
-    if (newSubtaskInput.trim()) {
-      setSubtasks([...subtasks, newSubtaskInput.trim()]);
-      setNewSubtaskInput("");
-    }
-  };
+  const handleAddSubtask = async () => {
+    const trimmed = newSubtaskInput.trim();
+    if (!trimmed) return;
 
-  const handleRemoveSubtask = (index: number) => {
-    setSubtasks(subtasks.filter((_, i) => i !== index));
-  };
-
-  const handleAiBreakdown = async () => {
-    if (!title.trim()) {
-      alert("Masukkan judul tugas terlebih dahulu sebelum meminta AI Breakdown!");
-      return;
-    }
-
-    setIsGeneratingAi(true);
-    try {
-      const generated = await aiService.breakdown(title.trim(), description.trim() || undefined);
-      if (generated && generated.length > 0) {
-        setSubtasks((prev) => Array.from(new Set([...prev, ...generated])));
+    if (taskToEdit && onAddSubtask) {
+      try {
+        const created = await onAddSubtask(taskToEdit.id, trimmed);
+        setSubtasks((prev) => [
+          ...prev,
+          {
+            id: created?.id,
+            title: trimmed,
+            isCompleted: false,
+          },
+        ]);
+      } catch (err) {
+        console.error("Failed to add subtask:", err);
       }
-    } catch (err: any) {
-      console.error("AI Breakdown failed:", err);
-      alert(err.message || "Gagal menghasilkan AI breakdown");
-    } finally {
-      setIsGeneratingAi(false);
+    } else {
+      setSubtasks((prev) => [
+        ...prev,
+        {
+          title: trimmed,
+          isCompleted: false,
+        },
+      ]);
+    }
+    setNewSubtaskInput("");
+  };
+
+  const handleToggleSubtask = async (item: LocalSubtaskItem, index: number) => {
+    if (item.id && taskToEdit && onToggleSubtask) {
+      try {
+        await onToggleSubtask(item.id, taskToEdit.id);
+        setSubtasks((prev) =>
+          prev.map((s) =>
+            s.id === item.id ? { ...s, isCompleted: !s.isCompleted } : s
+          )
+        );
+      } catch (err) {
+        console.error("Failed to toggle subtask:", err);
+      }
+    } else {
+      setSubtasks((prev) =>
+        prev.map((s, i) =>
+          i === index ? { ...s, isCompleted: !s.isCompleted } : s
+        )
+      );
+    }
+  };
+
+  const handleRemoveSubtask = async (item: LocalSubtaskItem, index: number) => {
+    if (item.id && taskToEdit && onDeleteSubtask) {
+      try {
+        await onDeleteSubtask(item.id, taskToEdit.id);
+        setSubtasks((prev) => prev.filter((s) => s.id !== item.id));
+      } catch (err) {
+        console.error("Failed to delete subtask:", err);
+      }
+    } else {
+      setSubtasks((prev) => prev.filter((_, i) => i !== index));
     }
   };
 
@@ -126,7 +187,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         priority,
         categoryId: categoryId || null,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-        subtasks: !taskToEdit ? subtasks : undefined,
+        subtasks: !taskToEdit ? subtasks.map((s) => s.title) : undefined,
       });
       onClose();
     } catch (err) {
@@ -135,6 +196,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setIsLoading(false);
     }
   };
+
+  const completedCount = (subtasks || []).filter((s) => s?.isCompleted).length;
+  const totalCount = (subtasks || []).length;
 
   return (
     <Modal
@@ -228,7 +292,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold"
             >
               <option value="">Tanpa Kategori</option>
-              {categories.map((c) => (
+              {(categories || []).map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
@@ -284,81 +348,88 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </div>
         )}
 
-        {/* Subtasks Checklist with AI Breakdown Button */}
-        {!taskToEdit && (
-          <div className="space-y-2 pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-slate-700">
-                Subtasks Checklist ({subtasks.length})
-              </label>
-              <button
-                type="button"
-                onClick={handleAiBreakdown}
-                disabled={isGeneratingAi || !title.trim()}
-                className="text-[11px] font-bold text-slate-900 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded-xl border border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                {isGeneratingAi ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-700" />
-                    <span>AI Menganalisis...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>AI Breakdown</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Tambah subtask manual (tekan enter)..."
-                value={newSubtaskInput}
-                onChange={(e) => setNewSubtaskInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddSubtask();
-                  }
-                }}
-                className="flex-1 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs px-3.5 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleAddSubtask}
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-
-            {subtasks.length > 0 && (
-              <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1 mt-2">
-                {subtasks.map((st, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs hover:border-slate-300 transition-all"
-                  >
-                    <span className="text-slate-700 font-medium flex items-center gap-2 truncate">
-                      <CheckCircle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                      {st}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSubtask(i)}
-                      className="text-slate-400 hover:text-rose-600 p-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+        {/* Subtasks Checklist */}
+        <div className="space-y-2 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-700">
+              Subtasks Checklist ({completedCount}/{totalCount})
+            </label>
+            {totalCount > 0 && (
+              <span className="text-[11px] text-slate-400 font-medium">
+                {Math.round((completedCount / totalCount) * 100)}% selesai
+              </span>
             )}
           </div>
-        )}
+
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Tambah subtask manual (tekan enter)..."
+              value={newSubtaskInput}
+              onChange={(e) => setNewSubtaskInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddSubtask();
+                }
+              }}
+              className="flex-1 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs px-3.5 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleAddSubtask}
+              disabled={!newSubtaskInput.trim()}
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+
+          {totalCount > 0 && (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 mt-2">
+              {subtasks.map((st, i) => (
+                <div
+                  key={st.id || `subtask-${i}`}
+                  className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs hover:border-slate-300 transition-all group"
+                >
+                  <div
+                    onClick={() => handleToggleSubtask(st, i)}
+                    className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer select-none"
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
+                        st.isCompleted
+                          ? "bg-slate-900 border-slate-900 text-white"
+                          : "border-slate-300 bg-white group-hover:border-slate-400"
+                      }`}
+                    >
+                      {st.isCompleted && <Check className="w-3 h-3 stroke-[3]" />}
+                    </div>
+                    <span
+                      className={`truncate font-medium transition-all ${
+                        st.isCompleted
+                          ? "line-through text-slate-400 font-normal"
+                          : "text-slate-800"
+                      }`}
+                    >
+                      {st.title}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSubtask(st, i)}
+                    title="Hapus subtask"
+                    className="text-slate-400 hover:text-rose-600 p-1 rounded-lg hover:bg-slate-100 transition-colors ml-2"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Modal Actions */}
         <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
