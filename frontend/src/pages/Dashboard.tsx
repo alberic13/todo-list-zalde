@@ -51,7 +51,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white pb-20">
+    <div className="min-h-screen text-slate-800 flex flex-col selection:bg-slate-900 selection:text-white pb-20">
       {/* Navbar with Semantic Search toggle */}
       <Navbar
         searchQuery={filters.search || ""}
@@ -67,15 +67,15 @@ export const Dashboard: React.FC = () => {
 
         {/* Semantic Search Banner Info if active */}
         {isSemanticSearch && (
-          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-purple-950/40 border border-purple-500/30 flex items-center justify-between gap-3 text-xs animate-in fade-in duration-200">
+          <div className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 card-shadow flex items-center justify-between gap-3 text-xs animate-in fade-in duration-200">
             <div className="flex items-center gap-2.5">
-              <p className="text-purple-200">
-                Mode <strong>AI Search</strong> aktif: Hasil diurutkan berdasarkan makna & relevansi.
+              <p className="text-slate-800 font-medium">
+                Mode <strong className="font-bold text-slate-900">AI Search</strong> aktif: Hasil diurutkan berdasarkan makna & relevansi.
               </p>
             </div>
             <button
               onClick={toggleSemanticSearch}
-              className="text-[11px] text-purple-300 hover:text-white underline font-semibold shrink-0"
+              className="text-[11px] text-indigo-600 hover:text-indigo-900 underline font-bold shrink-0"
             >
               Kembali ke Keyword
             </button>
@@ -123,13 +123,13 @@ export const Dashboard: React.FC = () => {
           <button
             onClick={() => setIsAiDrawerOpen(true)}
             title="Buka Zalde AI"
-            className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white font-semibold shadow-xl shadow-purple-600/30 border border-purple-400/40 hover:scale-105 active:scale-95 transition-all duration-300 group"
+            className="flex items-center gap-2.5 px-4.5 py-2.5 rounded-full bg-white/80 hover:bg-white backdrop-blur-2xl text-slate-900 font-extrabold shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-white/90 hover:scale-105 active:scale-95 transition-all duration-300 group"
           >
-            <Bot className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-            <span className="text-xs tracking-wide">Zalde AI</span>
+            <Bot className="w-4 h-4 group-hover:rotate-12 transition-transform text-indigo-600" />
+            <span className="text-xs tracking-wide text-slate-900">Zalde AI</span>
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-300 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600" />
             </span>
           </button>
         </div>

@@ -11,56 +11,56 @@ export const StatOverview: React.FC<StatOverviewProps> = ({ stats }) => {
 
   const statItems = [
     {
-      label: "Total Tugas",
+      label: "TOTAL TUGAS",
       value: stats.total,
       icon: ListTodo,
-      color: "text-indigo-400",
-      bg: "bg-indigo-500/10",
-      border: "border-indigo-500/20",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
     },
     {
-      label: "Sedang Berjalan",
+      label: "SEDANG BERJALAN",
       value: stats.inProgress,
       icon: Clock,
-      color: "text-amber-400",
-      bg: "bg-amber-500/10",
-      border: "border-amber-500/20",
+      color: "text-amber-600",
+      bg: "bg-amber-50",
     },
     {
-      label: "Selesai",
+      label: "SELESAI",
       value: stats.done,
       icon: CheckCircle2,
-      color: "text-emerald-400",
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/20",
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
     },
     {
-      label: "Terlambat",
+      label: "TERLAMBAT",
       value: stats.overdue,
       icon: AlertTriangle,
-      color: stats.overdue > 0 ? "text-rose-400" : "text-slate-400",
-      bg: stats.overdue > 0 ? "bg-rose-500/10" : "bg-slate-800/40",
-      border: stats.overdue > 0 ? "border-rose-500/30" : "border-slate-700/40",
+      color: stats.overdue > 0 ? "text-rose-600" : "text-slate-400",
+      bg: stats.overdue > 0 ? "bg-rose-50" : "bg-slate-100",
     },
   ];
 
   return (
     <div className="space-y-4">
-      {/* Top Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* Top Metric Cards - Matching Stitch Top Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statItems.map((item, idx) => {
           const Icon = item.icon;
           return (
             <div
               key={idx}
-              className={`p-4 rounded-2xl glass-card border ${item.border} flex items-center justify-between transition-all hover:scale-[1.02]`}
+              className="bg-white/85 backdrop-blur-xl rounded-3xl p-5 sm:p-6 card-shadow border border-white/80 hover:shadow-xl hover:bg-white transition-all flex flex-col justify-center h-[120px]"
             >
-              <div>
-                <p className="text-xs font-medium text-slate-400">{item.label}</p>
-                <p className="text-2xl font-bold text-white mt-1">{item.value}</p>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  {item.label}
+                </span>
+                <div className={`w-8 h-8 rounded-xl ${item.bg} flex items-center justify-center ${item.color}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
               </div>
-              <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center ${item.color}`}>
-                <Icon className="w-5 h-5" />
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {item.value}
               </div>
             </div>
           );
@@ -68,27 +68,27 @@ export const StatOverview: React.FC<StatOverviewProps> = ({ stats }) => {
       </div>
 
       {/* Progress Bar Banner */}
-      <div className="p-4 rounded-2xl glass-panel border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl card-shadow border border-white/80 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-slate-100">Tingkat Penyelesaian</h4>
-            <p className="text-xs text-slate-400">
-              {stats.done} dari {stats.total} tugas terselesaikan
+            <h4 className="text-sm font-bold text-slate-900">Tingkat Penyelesaian Tugas</h4>
+            <p className="text-xs text-slate-500 font-medium">
+              {stats.done} dari {stats.total} tugas telah terselesaikan
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-4 w-full sm:w-72">
-          <div className="flex-1 bg-slate-800 rounded-full h-2.5 overflow-hidden p-0.5">
+          <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200/60">
             <div
-              className="bg-gradient-to-r from-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-slate-900 to-indigo-600 h-full rounded-full transition-all duration-500"
               style={{ width: `${stats.completionRate}%` }}
             />
           </div>
-          <span className="text-xs font-bold text-slate-200 shrink-0 w-10 text-right">
+          <span className="text-xs font-extrabold text-slate-800 shrink-0 w-12 text-right">
             {stats.completionRate}%
           </span>
         </div>

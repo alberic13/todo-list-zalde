@@ -18,33 +18,33 @@ export const Badge: React.FC<BadgeProps> = ({
   children,
   ...props
 }) => {
-  let badgeStyle = "bg-slate-800 text-slate-300 border-slate-700/60";
+  let badgeStyle = "bg-slate-100 text-slate-700 border-slate-200";
 
   if (variant === "priority" || priority) {
     switch (priority) {
       case "urgent":
-        badgeStyle = "bg-rose-500/15 text-rose-300 border-rose-500/30";
+        badgeStyle = "bg-rose-50 text-rose-700 border-rose-200/80";
         break;
       case "high":
-        badgeStyle = "bg-amber-500/15 text-amber-300 border-amber-500/30";
+        badgeStyle = "bg-amber-50 text-amber-700 border-amber-200/80";
         break;
       case "medium":
-        badgeStyle = "bg-blue-500/15 text-blue-300 border-blue-500/30";
+        badgeStyle = "bg-blue-50 text-blue-700 border-blue-200/80";
         break;
       case "low":
-        badgeStyle = "bg-slate-500/15 text-slate-300 border-slate-500/30";
+        badgeStyle = "bg-slate-100 text-slate-600 border-slate-200/80";
         break;
     }
   } else if (variant === "status" || status) {
     switch (status) {
       case "done":
-        badgeStyle = "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+        badgeStyle = "bg-[#e8f5e9] text-[#2e7d32] border-transparent font-bold";
         break;
       case "in_progress":
-        badgeStyle = "bg-indigo-500/15 text-indigo-300 border-indigo-500/30";
+        badgeStyle = "bg-[#fff8e1] text-[#f57f17] border-transparent font-bold";
         break;
       case "todo":
-        badgeStyle = "bg-slate-500/15 text-slate-300 border-slate-500/30";
+        badgeStyle = "bg-slate-100 text-slate-700 border-slate-200/80 font-bold";
         break;
     }
   }
@@ -52,20 +52,20 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border",
+        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all",
         badgeStyle,
         className
       )}
-      style={colorHex ? { backgroundColor: `${colorHex}20`, borderColor: `${colorHex}40`, color: colorHex } : undefined}
+      style={colorHex ? { backgroundColor: `${colorHex}15`, borderColor: `${colorHex}40`, color: colorHex } : undefined}
       {...props}
     >
       {variant === "priority" && priority && (
         <span
           className={cn("w-1.5 h-1.5 rounded-full", {
-            "bg-rose-400": priority === "urgent",
-            "bg-amber-400": priority === "high",
-            "bg-blue-400": priority === "medium",
-            "bg-slate-400": priority === "low",
+            "bg-rose-500": priority === "urgent",
+            "bg-amber-500": priority === "high",
+            "bg-blue-500": priority === "medium",
+            "bg-slate-500": priority === "low",
           })}
         />
       )}

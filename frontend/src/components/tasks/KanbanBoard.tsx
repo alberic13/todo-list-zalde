@@ -33,22 +33,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       id: "todo",
       title: "Belum Mulai",
       dotColor: "bg-slate-400",
-      borderTop: "border-t-slate-500",
-      glowColor: "border-slate-500/80 bg-slate-900/60 shadow-slate-500/10",
+      borderTop: "border-t-slate-400",
+      glowColor: "border-slate-400 bg-slate-100/80 shadow-md",
     },
     {
       id: "in_progress",
       title: "Sedang Berjalan",
-      dotColor: "bg-indigo-400 animate-pulse",
+      dotColor: "bg-indigo-500",
       borderTop: "border-t-indigo-500",
-      glowColor: "border-indigo-500/80 bg-indigo-950/30 shadow-indigo-500/20",
+      glowColor: "border-indigo-500 bg-indigo-50/80 shadow-md",
     },
     {
       id: "done",
       title: "Selesai",
-      dotColor: "bg-emerald-400",
+      dotColor: "bg-emerald-500",
       borderTop: "border-t-emerald-500",
-      glowColor: "border-emerald-500/80 bg-emerald-950/30 shadow-emerald-500/20",
+      glowColor: "border-emerald-500 bg-emerald-50/80 shadow-md",
     },
   ];
 
@@ -61,7 +61,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    // Only clear if leaving the main container
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setDragOverColumn(null);
     }
@@ -77,7 +76,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 items-start">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 items-start">
       {columns.map((col) => {
         const colTasks = tasks.filter((t) => t.status === col.id);
         const isTarget = dragOverColumn === col.id;
@@ -88,20 +87,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             onDragOver={(e) => handleDragOver(e, col.id)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, col.id)}
-            className={`rounded-2xl glass-panel p-4 border ${col.borderTop} border-t-2 flex flex-col min-h-[520px] transition-all duration-200 ${
+            className={`rounded-3xl glass-panel p-5 border ${col.borderTop} border-t-4 card-shadow flex flex-col min-h-[540px] transition-all duration-200 ${
               isTarget
-                ? `${col.glowColor} scale-[1.01] shadow-2xl border-dashed`
-                : "border-slate-800/80 bg-slate-950/40"
+                ? `${col.glowColor} scale-[1.01] border-dashed`
+                : "border-white/80 bg-white/70"
             }`}
           >
             {/* Column Header */}
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/80">
               <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${col.dotColor}`} />
-                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                <span className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`} />
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                   {col.title}
                 </h4>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/60">
+                <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
                   {colTasks.length}
                 </span>
               </div>
@@ -109,7 +108,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenCreateTaskWithStatus(col.id)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                className="w-7 h-7 rounded-xl bg-white hover:bg-slate-900 hover:text-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-sm transition-all"
                 title={`Tambah di ${col.title}`}
               >
                 <Plus className="w-4 h-4" />
@@ -117,52 +116,43 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             </div>
 
             {/* Task Cards Drop Zone */}
-            <div className="space-y-3 flex-1 overflow-y-auto max-h-[calc(100vh-280px)] pr-1 min-h-[200px]">
+            <div className="space-y-3.5 flex-1 overflow-y-auto max-h-[calc(100vh-280px)] pr-1 min-h-[220px]">
               {colTasks.length === 0 ? (
                 <div
-                  className={`h-36 rounded-xl border border-dashed flex flex-col items-center justify-center text-center p-4 transition-all ${
+                  className={`h-40 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center p-4 transition-all ${
                     isTarget
-                      ? "border-indigo-500 bg-indigo-500/10 text-indigo-300"
-                      : "border-slate-800 text-slate-500"
+                      ? "border-indigo-500 bg-indigo-50/80 text-indigo-700"
+                      : "border-slate-200/90 bg-white/40 text-slate-400"
                   }`}
                 >
                   {isTarget ? (
                     <div className="flex flex-col items-center gap-1.5 animate-bounce">
-                      <ArrowDownToLine className="w-5 h-5 text-indigo-400" />
-                      <p className="text-xs font-semibold text-indigo-300">Lepaskan tugas di sini</p>
+                      <ArrowDownToLine className="w-5 h-5 text-indigo-600" />
+                      <p className="text-xs font-bold text-indigo-700">Lepaskan tugas di sini</p>
                     </div>
                   ) : (
                     <>
-                      <p className="text-xs text-slate-500">Tidak ada tugas</p>
+                      <p className="text-xs font-semibold text-slate-400">Tidak ada tugas</p>
                       <button
                         type="button"
                         onClick={() => onOpenCreateTaskWithStatus(col.id)}
-                        className="text-[11px] text-indigo-400 hover:underline mt-1 font-medium"
+                        className="text-[11px] text-indigo-600 hover:underline mt-1 font-bold"
                       >
-                        + Tambah tugas
+                        + Tambah Tugas
                       </button>
                     </>
                   )}
                 </div>
               ) : (
-                <>
-                  {colTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                      onStatusChange={onStatusChange}
-                      onToggleSubtask={onToggleSubtask}
-                    />
-                  ))}
-                  {isTarget && (
-                    <div className="h-14 rounded-xl border-2 border-dashed border-indigo-500/60 bg-indigo-500/10 flex items-center justify-center gap-2 text-xs text-indigo-300 animate-pulse">
-                      <ArrowDownToLine className="w-4 h-4" />
-                      <span>Lepaskan untuk pindah ke {col.title}</span>
-                    </div>
-                  )}
-                </>
+                colTasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onToggleSubtask={onToggleSubtask}
+                  />
+                ))
               )}
             </div>
           </div>

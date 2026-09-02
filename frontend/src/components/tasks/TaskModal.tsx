@@ -161,7 +161,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
         {/* Description */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-medium text-slate-300">
+          <label className="block text-xs font-bold text-slate-700">
             Deskripsi (Opsional)
           </label>
           <textarea
@@ -169,7 +169,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             placeholder="Tambahkan catatan detail tugas..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-100 placeholder:text-slate-500 text-sm px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
+            className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all resize-none shadow-sm"
           />
         </div>
 
@@ -177,13 +177,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {/* Priority */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-xs font-bold text-slate-700">
               Prioritas
             </label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="w-full rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-200 text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold"
             >
               <option value="urgent">🔴 Urgent</option>
               <option value="high">🟠 Tinggi</option>
@@ -194,13 +194,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
           {/* Status */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-xs font-bold text-slate-700">
               Status
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className="w-full rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-200 text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold"
             >
               <option value="todo">Belum Mulai</option>
               <option value="in_progress">Sedang Berjalan</option>
@@ -211,13 +211,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           {/* Category */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-medium text-slate-300">
+              <label className="block text-xs font-bold text-slate-700">
                 Kategori
               </label>
               <button
                 type="button"
                 onClick={() => setShowAddCat(!showAddCat)}
-                className="text-[11px] text-indigo-400 hover:underline font-medium"
+                className="text-[11px] text-indigo-600 hover:underline font-bold"
               >
                 + Kategori Baru
               </button>
@@ -225,7 +225,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-200 text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold"
             >
               <option value="">Tanpa Kategori</option>
               {categories.map((c) => (
@@ -238,7 +238,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
           {/* Due Date */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-xs font-bold text-slate-700">
               Batas Waktu (Deadline)
             </label>
             <div className="relative flex items-center">
@@ -246,7 +246,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-200 text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold"
               />
             </div>
           </div>
@@ -254,9 +254,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
         {/* Quick Add Category inline form */}
         {showAddCat && (
-          <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/70 space-y-2 animate-in fade-in duration-150">
-            <p className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5 text-indigo-400" /> Tambah Kategori
+          <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 space-y-2 animate-in fade-in duration-150">
+            <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-indigo-600" /> Tambah Kategori
             </p>
             <div className="flex items-center gap-2">
               <input
@@ -264,13 +264,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 placeholder="Nama kategori..."
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
-                className="flex-1 rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-white"
+                className="flex-1 rounded-xl bg-white border border-slate-300 px-3 py-1.5 text-xs text-slate-900 font-medium"
               />
               <input
                 type="color"
                 value={newCatColor}
                 onChange={(e) => setNewCatColor(e.target.value)}
-                className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                className="w-8 h-8 rounded-xl bg-transparent border-0 cursor-pointer p-0"
               />
               <Button
                 type="button"
@@ -286,26 +286,26 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
         {/* Subtasks Checklist with AI Breakdown Button */}
         {!taskToEdit && (
-          <div className="space-y-2 pt-2 border-t border-slate-800">
+          <div className="space-y-2 pt-3 border-t border-slate-100">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-medium text-slate-300">
+              <label className="block text-xs font-bold text-slate-700">
                 Subtasks Checklist ({subtasks.length})
               </label>
               <button
                 type="button"
                 onClick={handleAiBreakdown}
                 disabled={isGeneratingAi || !title.trim()}
-                className="text-[11px] font-semibold text-purple-300 hover:text-purple-100 flex items-center gap-1.5 bg-gradient-to-r from-purple-600/30 to-indigo-600/30 hover:from-purple-600/50 hover:to-indigo-600/50 px-3 py-1 rounded-lg border border-purple-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                className="text-[11px] font-bold text-slate-900 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded-xl border border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
                 {isGeneratingAi ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-300" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-700" />
                     <span>AI Menganalisis...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 text-purple-300" />
-                    <span>✨ AI Breakdown</span>
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>AI Breakdown</span>
                   </>
                 )}
               </button>
@@ -323,7 +323,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                     handleAddSubtask();
                   }
                 }}
-                className="flex-1 rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-200 text-xs px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="flex-1 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs px-3.5 py-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
               />
               <Button
                 type="button"
@@ -340,16 +340,16 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 {subtasks.map((st, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 border border-slate-800 text-xs hover:border-purple-500/30 transition-all"
+                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs hover:border-slate-300 transition-all"
                   >
-                    <span className="text-slate-300 flex items-center gap-2 truncate">
-                      <CheckCircle className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <span className="text-slate-700 font-medium flex items-center gap-2 truncate">
+                      <CheckCircle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                       {st}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleRemoveSubtask(i)}
-                      className="text-slate-500 hover:text-rose-400 p-1"
+                      className="text-slate-400 hover:text-rose-600 p-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -361,7 +361,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         )}
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
           <Button type="button" variant="outline" onClick={onClose}>
             Batal
           </Button>

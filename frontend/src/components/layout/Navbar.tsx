@@ -2,9 +2,7 @@ import React from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { Button } from "../ui/Button";
 import {
-  CheckSquare,
   LogOut,
-  User as UserIcon,
   Search,
 } from "lucide-react";
 
@@ -24,20 +22,25 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { user, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/60 bg-white/75 backdrop-blur-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Brand */}
+        {/* Brand with Mac dots */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/30">
-            <CheckSquare className="w-5 h-5" />
+          <div className="flex items-center gap-1.5 px-1 py-1">
+            <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[#f5bd4f]" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[#61c554]" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-base tracking-tight text-white">
-                Todolist<span className="text-indigo-400">-App</span>
-              </span>
+
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-base tracking-tight text-black">
+                  Todolist-App
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">Smart Productivity Suite</p>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Smart Productivity Suite</p>
           </div>
         </div>
 
@@ -54,10 +57,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               }
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className={`w-full pl-10 pr-28 py-2 text-xs rounded-xl bg-slate-900/90 border text-slate-200 placeholder:text-slate-500 focus:outline-none transition-all ${
+              className={`w-full pl-10 pr-24 py-2 text-xs rounded-2xl bg-white/80 border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all shadow-sm ${
                 isSemanticSearch
-                  ? "border-purple-500/50 focus:ring-2 focus:ring-purple-500/80 shadow-sm shadow-purple-500/10"
-                  : "border-slate-700/60 focus:ring-2 focus:ring-indigo-500"
+                  ? "border-purple-400 focus:ring-2 focus:ring-purple-500/30 shadow-purple-500/10"
+                  : "border-slate-200 focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
               }`}
             />
 
@@ -66,10 +69,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onToggleSemanticSearch}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all ${
                   isSemanticSearch
-                    ? "bg-purple-600 text-white shadow-sm"
-                    : "bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-750"
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200"
                 }`}
                 title="Beralih antara Keyword Search & AI Search"
               >
@@ -78,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {searchQuery && (
                 <button
                   onClick={() => onSearchChange("")}
-                  className="text-xs text-slate-400 hover:text-slate-200 p-1"
+                  className="text-xs text-slate-400 hover:text-slate-700 p-1 font-bold"
                 >
                   ✕
                 </button>
@@ -91,15 +94,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-2.5">
           {/* User Profile & Logout */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                <UserIcon className="w-4 h-4" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                {(user?.name || "U")[0].toUpperCase()}
               </div>
               <div className="hidden lg:block text-left">
-                <p className="text-xs font-semibold text-slate-200 leading-tight">
+                <p className="text-xs font-bold text-slate-900 leading-tight">
                   {user?.name || "User"}
                 </p>
-                <p className="text-[10px] text-slate-400 leading-tight truncate max-w-[120px]">
+                <p className="text-[10px] text-slate-500 leading-tight truncate max-w-[120px]">
                   {user?.email}
                 </p>
               </div>
@@ -110,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               size="icon"
               onClick={logout}
               title="Logout"
-              className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50"
             >
               <LogOut className="w-4 h-4" />
             </Button>

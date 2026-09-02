@@ -10,7 +10,6 @@ import {
   Minimize2,
   Trash2,
   Loader2,
-  CheckCircle2,
 } from "lucide-react";
 
 export interface ChatMessage {
@@ -47,7 +46,7 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
 
   const quickPrompts = [
     "Apa tugas paling prioritas yang harus saya selesaikan hari ini?",
-  
+    "Bantu rencanakan jadwal tugas saya minggu ini.",
   ];
 
   useEffect(() => {
@@ -99,7 +98,7 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
       {
         id: `welcome-${Date.now()}`,
         sender: "ai",
-        text: "Percakapan dibersihkan. Apa yang ingin Anda tanyakan seputar tugas Anda sekarang?",
+        text: "Riwayat percakapan telah dibersihkan. Ada yang bisa saya bantu selanjutnya?",
         timestamp: new Date(),
       },
     ]);
@@ -108,169 +107,196 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      className={`fixed bottom-6 right-6 z-50 rounded-3xl glass-panel shadow-2xl border border-purple-500/40 bg-slate-950/95 flex flex-col transition-all duration-300 animate-in slide-in-from-bottom-5 ${
-        isExpanded
-          ? "w-[90vw] sm:w-[640px] h-[80vh]"
-          : "w-[90vw] sm:w-[420px] h-[540px]"
-      }`}
-    >
-      {/* Header */}
-      <div className="p-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/60 rounded-t-3xl">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-600/30 border border-purple-400/40">
-            <Bot className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-white">Zalde AI</h3>
+    <>
+      {/* Backdrop for Mobile */}
+      <div
+        className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-40 lg:hidden animate-in fade-in"
+        onClick={onClose}
+      />
+
+      {/* Drawer Panel with Theme Blur & Matching Mesh Background */}
+      <aside
+        className={`fixed top-0 right-0 bottom-0 z-50 border-l border-white/60 shadow-2xl flex flex-col transition-all duration-300 ${
+          isExpanded ? "w-full sm:w-[680px]" : "w-full sm:w-[440px]"
+        }`}
+        style={{
+          backgroundColor: "rgba(255, 255, 255, 0.72)",
+          backgroundImage:
+            "radial-gradient(at 0% 0%, hsla(253, 16%, 15%, 0.12) 0, transparent 60%), radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 0.12) 0, transparent 60%), radial-gradient(at 50% 100%, hsla(225, 39%, 30%, 0.08) 0, transparent 60%)",
+          backdropFilter: "blur(32px)",
+          WebkitBackdropFilter: "blur(32px)",
+        }}
+      >
+        {/* Header */}
+        <div className="p-4 border-b border-white/60 flex items-center justify-between bg-white/40 backdrop-blur-xl">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1 px-1">
+              <div className="w-2 h-2 rounded-full bg-rose-500" />
+              <div className="w-2 h-2 rounded-full bg-[#f5bd4f]" />
+              <div className="w-2 h-2 rounded-full bg-[#61c554]" />
             </div>
-            <p className="text-[10px] text-slate-400">Asisten Pintar Produktivitas Tugas Anda</p>
+            <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-sm ml-1">
+              <Bot className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                Zalde AI
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">Konteks & Prioritas Otomatis</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-white/60 transition-colors hidden sm:flex"
+              title={isExpanded ? "Perkecil" : "Perlebar"}
+            >
+              {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={clearChat}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50/80 transition-colors"
+              title="Bersihkan Chat"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-white/60 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            onClick={clearChat}
-            className="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800/80 transition-colors"
-            title="Bersihkan chat"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800/80 transition-colors hidden sm:block"
-            title={isExpanded ? "Perkecil" : "Perbesar"}
-          >
-            {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800/80 transition-colors"
-            title="Tutup drawer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-3 ${
-              msg.sender === "user" ? "flex-row-reverse" : "flex-row"
-            }`}
-          >
-            {/* Avatar */}
+        {/* Message Thread */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((msg) => (
             <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 text-xs ${
-                msg.sender === "user"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-purple-600/30 text-purple-300 border border-purple-500/30"
+              key={msg.id}
+              className={`flex gap-3 text-xs leading-relaxed ${
+                msg.sender === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              {msg.sender === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-            </div>
-
-            {/* Message Bubble */}
-            <div
-              className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed ${
-                msg.sender === "user"
-                  ? "bg-indigo-600 text-white rounded-tr-sm"
-                  : "glass-card border border-slate-700/60 bg-slate-900/90 text-slate-200 rounded-tl-sm"
-              }`}
-            >
-              <div className="whitespace-pre-wrap">{msg.text}</div>
-
-              {/* Referenced Tasks Chip List */}
-              {msg.referencedTasks && msg.referencedTasks.length > 0 && (
-                <div className="mt-3 pt-2.5 border-t border-slate-700/60 space-y-1.5">
-                  <p className="text-[10px] font-semibold text-purple-300 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Tugas Terkait (RAG Context):
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {msg.referencedTasks.map((t) => (
-                      <button
-                        key={t.id}
-                        onClick={() => onOpenTaskModal?.(t)}
-                        className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 hover:bg-purple-500/20 text-purple-200 border border-purple-500/30 truncate max-w-[200px] transition-colors"
-                      >
-                        {t.title}
-                      </button>
-                    ))}
-                  </div>
+              {msg.sender === "ai" && (
+                <div className="w-7 h-7 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
+                  <Bot className="w-4 h-4" />
                 </div>
               )}
 
-              <span className="block text-[9px] text-slate-400 mt-1 text-right">
-                {new Date(msg.timestamp).toLocaleTimeString("id-ID", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-          </div>
-        ))}
+              <div
+                className={`max-w-[85%] rounded-2xl p-3.5 ${
+                  msg.sender === "user"
+                    ? "bg-slate-900/90 backdrop-blur-xl text-white shadow-md font-medium"
+                    : "bg-white/80 backdrop-blur-xl border border-white/90 text-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+                }`}
+              >
+                <div className="whitespace-pre-wrap">{msg.text}</div>
 
-        {/* Loading / Thinking Indicator */}
-        {isLoading && (
-          <div className="flex gap-3">
-            <div className="w-7 h-7 rounded-xl bg-purple-600/30 text-purple-300 border border-purple-500/30 flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4 animate-bounce" />
+                {/* Referenced tasks chip cards */}
+                {msg.referencedTasks && msg.referencedTasks.length > 0 && (
+                  <div className="mt-3 pt-2.5 border-t border-slate-200/80 space-y-1.5">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      Tugas Terkait ({msg.referencedTasks.length}):
+                    </p>
+                    {msg.referencedTasks.map((rt) => (
+                      <div
+                        key={rt.id}
+                        onClick={() => onOpenTaskModal && onOpenTaskModal(rt)}
+                        className="p-2 rounded-xl bg-white/90 backdrop-blur-md border border-slate-200/80 hover:border-slate-400 flex items-center justify-between cursor-pointer transition-all shadow-sm"
+                      >
+                        <span className="truncate text-slate-900 font-semibold">{rt.title}</span>
+                        <span
+                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                            rt.status === "done"
+                              ? "bg-[#e8f5e9] text-[#2e7d32]"
+                              : rt.status === "in_progress"
+                              ? "bg-[#fff8e1] text-[#f57f17]"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {rt.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-[10px] text-slate-400 mt-1.5 text-right">
+                  {new Date(msg.timestamp).toLocaleTimeString("id-ID", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
+
+              {msg.sender === "user" && (
+                <div className="w-7 h-7 rounded-xl bg-white/90 border border-white shadow-sm flex items-center justify-center text-slate-700 shrink-0 mt-0.5 font-bold text-xs">
+                  <User className="w-4 h-4" />
+                </div>
+              )}
             </div>
-            <div className="glass-card rounded-2xl p-3 text-xs text-slate-300 border border-purple-500/30 flex items-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
-              <span>Memproses konteks tugas & berpikir...</span>
+          ))}
+
+          {isLoading && (
+            <div className="flex gap-3 text-xs justify-start items-center animate-in fade-in">
+              <div className="w-7 h-7 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-sm">
+                <Bot className="w-4 h-4" />
+              </div>
+              <div className="bg-white/80 backdrop-blur-xl border border-white/90 text-slate-700 rounded-2xl px-4 py-2.5 flex items-center gap-2 shadow-sm">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
+                <span className="font-semibold text-slate-700">Zalde AI sedang berpikir...</span>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Quick Prompts */}
+        {messages.length <= 2 && (
+          <div className="px-4 pb-2">
+            <p className="text-[11px] text-slate-500 font-bold mb-1.5 uppercase tracking-wider">Saran Pertanyaan:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {quickPrompts.map((qp, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSend(qp)}
+                  className="text-left text-[11px] px-3 py-1.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 font-semibold transition-all border border-white/90 shadow-sm"
+                >
+                  {qp}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Suggested Prompts */}
-      {messages.length <= 2 && !isLoading && (
-        <div className="px-4 pb-2 flex flex-wrap gap-1.5">
-          {quickPrompts.map((p, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSend(p)}
-              className="text-[11px] text-left px-2.5 py-1 rounded-xl bg-slate-900/90 hover:bg-purple-900/30 border border-slate-800 hover:border-purple-500/40 text-slate-300 hover:text-purple-200 transition-all leading-tight"
-            >
-              💡 {p}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Input Box */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-900/80 rounded-b-3xl">
+        {/* Input Form */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSend();
           }}
-          className="flex items-center gap-2"
+          className="p-3.5 border-t border-white/60 bg-white/40 backdrop-blur-xl flex items-center gap-2"
         >
           <input
             type="text"
-            placeholder="Tanyakan jadwal, prioritas, atau rekomendasi kerja..."
+            placeholder="Tanyakan jadwal, prioritas, atau rekomendasi tugas..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isLoading}
-            className="flex-1 rounded-xl bg-slate-950 border border-slate-700/80 text-slate-100 placeholder:text-slate-500 text-xs px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all"
+            className="flex-1 rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 text-slate-900 placeholder:text-slate-400 text-xs px-4 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 transition-all shadow-sm"
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="p-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-purple-600/30 transition-all shrink-0"
+            className="p-2.5 rounded-2xl bg-slate-900 hover:bg-black text-white transition-all disabled:opacity-40 shadow-sm"
           >
             <Send className="w-4 h-4" />
           </button>
         </form>
-      </div>
-    </div>
+      </aside>
+    </>
   );
 };
