@@ -16,6 +16,7 @@ export class GeminiClient {
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(6000), // 6s timeout
         body: JSON.stringify({
           content: {
             parts: [{ text }],
@@ -30,7 +31,7 @@ export class GeminiClient {
         }
       }
     } catch (err) {
-      console.warn("Fast embedding fallback triggered:", err);
+      console.warn("Embedding fallback triggered:", err);
     }
 
     return this.generateFallbackEmbedding(text);
@@ -75,6 +76,7 @@ export class GeminiClient {
         const response = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(8000), // 8s timeout safeguard
           body: JSON.stringify(body),
         });
 
@@ -85,7 +87,7 @@ export class GeminiClient {
           if (text) return text.trim();
         }
       } catch (err) {
-        // Try next candidate
+        // Try next model candidate
       }
     }
 
