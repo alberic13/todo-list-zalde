@@ -110,6 +110,32 @@ npm run test:all
 | **E2E Task Flow** | `test/e2e.test.ts` | ✅ PASS (4/4) | Register ➔ Login ➔ Task & Subtasks CRUD ➔ Stats |
 | **RAG & Vector Search** | `test/rag.test.ts` | ✅ PASS (2/2) | Text Chunking & L2-Normalized Vector Embeddings |
 
+### 🖥️ Output Log Eksekusi Test Suite (`npm run test`):
+```text
+bun test v1.3.14 (0d9b296a)
+
+test\auth.test.ts:
+✓ API & Response Formatting Tests > should format standardized success response
+✓ API & Response Formatting Tests > should format standardized error response
+✓ API & Response Formatting Tests > should return healthy status from root endpoint
+✓ API & Response Formatting Tests > should reject unauthorized requests to protected routes
+
+test\e2e.test.ts:
+✓ E2E Auth & Task Flow > should register new user
+✓ E2E Auth & Task Flow > should login with registered credentials
+✓ E2E Auth & Task Flow > should create a task with subtasks
+✓ E2E Auth & Task Flow > should list tasks and calculate stats
+
+test\rag.test.ts:
+✓ RAG & Embedding Unit Tests > should construct standardized chunk text accurately
+✓ RAG & Embedding Unit Tests > should generate valid normalized vector embedding
+
+ 10 pass
+ 0 fail
+ 38 expect() calls
+Ran 10 tests across 3 files. [1.70s]
+```
+
 ---
 
 ## 📅 Roadmap Rilis
