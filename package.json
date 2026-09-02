@@ -9,6 +9,7 @@
   "scripts": {
     "dev:backend": "cd backend && bun run dev",
     "dev:frontend": "cd frontend && npm run dev",
+    "db:seed": "cd backend && bun run db:seed",
     "build": "cd frontend && npm run build",
     "lint": "cd frontend && npm run lint"
   }

@@ -59,7 +59,15 @@ cp .env.example backend/.env
 
 Sesuaikan `DATABASE_URL` dan `JWT_SECRET`.
 
-### 3. Menjalankan Backend
+### 3. Setup Database & Seed Data Dummy
+```bash
+cd backend
+bun run db:push
+bun run db:seed
+```
+*Akun Demo Default: `demo@zalde.com` / `Password123!`*
+
+### 4. Menjalankan Backend
 ```bash
 cd backend
 bun install
