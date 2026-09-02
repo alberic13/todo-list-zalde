@@ -11,6 +11,10 @@
     "dev:frontend": "cd frontend && npm run dev",
     "db:seed": "cd backend && bun run db:seed",
     "build": "cd frontend && npm run build",
-    "lint": "cd frontend && npm run lint"
+    "lint:backend": "cd backend && bun run typecheck",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "test": "cd backend && bun test",
+    "test:all": "npm run lint && npm run test"
   }
 }
