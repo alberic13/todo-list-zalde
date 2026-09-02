@@ -1,17 +1,19 @@
-import { eq, and, sql, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { db } from "../config/db";
-import { tasks, taskEmbeddings, subtasks, categories } from "../models/schema";
+import { tasks, taskEmbeddings } from "../models/schema";
 import { GeminiClient } from "../config/ai";
 
 export class RagService {
   /**
-   * Helper to calculate cosine similarity between two vectors
+   * Fast Cosine Similarity calculation
    */
   private static cosineSimilarity(vecA: number[], vecB: number[]): number {
+    if (!vecA || !vecB || vecA.length === 0 || vecB.length === 0) return 0;
+    const len = Math.min(vecA.length, vecB.length);
     let dotProduct = 0;
     let normA = 0;
     let normB = 0;
-    for (let i = 0; i < vecA.length; i++) {
+    for (let i = 0; i < len; i++) {
       dotProduct += vecA[i] * vecB[i];
       normA += vecA[i] * vecA[i];
       normB += vecB[i] * vecB[i];
@@ -21,36 +23,32 @@ export class RagService {
   }
 
   /**
-   * Semantic search using vector cosine similarity
+   * Fast vector semantic search
    */
   static async semanticSearch(userId: string, query: string, topK = 10) {
     if (!query.trim()) return [];
 
-    // 1. Generate query embedding
-    const queryVector = await GeminiClient.generateEmbedding(query);
-
-    // 2. Fetch all user embeddings from database
-    const userEmbeddings = await db
-      .select({
-        taskId: taskEmbeddings.taskId,
-        embedding: taskEmbeddings.embedding,
-        contentChunk: taskEmbeddings.contentChunk,
-      })
-      .from(taskEmbeddings)
-      .where(eq(taskEmbeddings.userId, userId));
+    // Parallel: generate query embedding & fetch stored user embeddings concurrently
+    const [queryVector, userEmbeddings] = await Promise.all([
+      GeminiClient.generateEmbedding(query),
+      db
+        .select({
+          taskId: taskEmbeddings.taskId,
+          embedding: taskEmbeddings.embedding,
+        })
+        .from(taskEmbeddings)
+        .where(eq(taskEmbeddings.userId, userId)),
+    ]);
 
     if (userEmbeddings.length === 0) return [];
 
-    // 3. Score each task by cosine similarity
+    // Score in-memory
     const scoredTasks = userEmbeddings
-      .map((item) => {
-        const similarity = this.cosineSimilarity(queryVector, item.embedding);
-        return {
-          taskId: item.taskId,
-          similarity: Math.round(similarity * 100) / 100,
-        };
-      })
-      .filter((item) => item.similarity > 0.3) // Relevancy threshold
+      .map((item) => ({
+        taskId: item.taskId,
+        similarity: Math.round(this.cosineSimilarity(queryVector, item.embedding) * 100) / 100,
+      }))
+      .filter((item) => item.similarity > 0.25)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, topK);
 
@@ -58,7 +56,6 @@ export class RagService {
 
     const taskIds = scoredTasks.map((st) => st.taskId);
 
-    // 4. Fetch full task objects with relations
     const foundTasks = await db.query.tasks.findMany({
       where: and(eq(tasks.userId, userId), inArray(tasks.id, taskIds)),
       with: {
@@ -67,75 +64,64 @@ export class RagService {
       },
     });
 
-    // Map similarity score back to tasks
     return foundTasks
-      .map((task) => {
-        const score = scoredTasks.find((st) => st.taskId === task.id)?.similarity || 0;
-        return {
-          ...task,
-          similarityScore: score,
-        };
-      })
-      .sort((a, b) => b.similarityScore - a.similarityScore);
+      .map((task) => ({
+        ...task,
+        similarityScore: scoredTasks.find((st) => st.taskId === task.id)?.similarity || 0,
+      }))
+      .sort((a, b) => (b.similarityScore || 0) - (a.similarityScore || 0));
   }
 
   /**
-   * RAG Copilot Chat: retrieves user context & answers questions
+   * High-speed RAG Copilot Chat
    */
   static async chatWithRag(
     userId: string,
     message: string,
     userName = "Pengguna"
   ): Promise<{ response: string; referencedTasks: any[] }> {
-    // 1. Retrieve top-5 semantically relevant tasks
-    const relevantTasks = await this.semanticSearch(userId, message, 5);
+    // Parallelize task retrieval & semantic search
+    const [relevantTasks, activeTasks] = await Promise.all([
+      this.semanticSearch(userId, message, 5),
+      db.query.tasks.findMany({
+        where: eq(tasks.userId, userId),
+        with: { category: true, subtasks: true },
+        orderBy: [desc(tasks.createdAt)],
+        limit: 12,
+      }),
+    ]);
 
-    // 2. Retrieve high-priority & upcoming/in-progress tasks
-    const activeTasks = await db.query.tasks.findMany({
-      where: and(eq(tasks.userId, userId)),
-      with: { category: true, subtasks: true },
-      orderBy: [desc(tasks.createdAt)],
-      limit: 10,
-    });
-
-    // 3. Build RAG Context string
-    const contextBuilder: string[] = [];
-    contextBuilder.push(`[DAFTAR TUGAS AKTIF PENGGUNA (${userName})]:`);
+    // Build concise RAG context
+    const contextLines: string[] = [`[DAFTAR TUGAS AKTIF ${userName.toUpperCase()}]:`];
 
     if (activeTasks.length === 0) {
-      contextBuilder.push("Pengguna belum memiliki daftar tugas.");
+      contextLines.push("Belum ada tugas.");
     } else {
       for (const t of activeTasks) {
-        const subCount = t.subtasks ? `${t.subtasks.filter((s) => s.isCompleted).length}/${t.subtasks.length} subtask selesai` : "0 subtask";
+        const subDone = t.subtasks ? t.subtasks.filter((s) => s.isCompleted).length : 0;
+        const subTotal = t.subtasks ? t.subtasks.length : 0;
         const deadline = t.dueDate ? `Deadline: ${new Date(t.dueDate).toLocaleDateString("id-ID")}` : "Tanpa deadline";
         const cat = t.category?.name ? `[${t.category.name}]` : "";
-        contextBuilder.push(
-          `- ${t.title} ${cat} | Status: ${t.status} | Prioritas: ${t.priority} | ${deadline} | ${subCount} | Ket: ${t.description || "-"}`
+        contextLines.push(
+          `- ${t.title} ${cat} | Status: ${t.status} | Prioritas: ${t.priority} | ${deadline} | Subtask: ${subDone}/${subTotal}`
         );
       }
     }
 
     if (relevantTasks.length > 0) {
-      contextBuilder.push("\n[TUGAS PALING RELEVAN DENGAN PERTANYAAN]:");
+      contextLines.push("\n[TUGAS RELEVAN DENGAN PERTANYAAN]:");
       for (const t of relevantTasks) {
-        contextBuilder.push(`- ${t.title} (Skor Relevansi: ${t.similarityScore * 100}%)`);
+        contextLines.push(`- ${t.title} (${Math.round((t.similarityScore || 0) * 100)}% relevan)`);
       }
     }
 
-    const contextText = contextBuilder.join("\n");
+    const systemInstruction = `Kamu adalah Zalde AI Productivity Copilot.
+Bantu ${userName} merencanakan dan memprioritaskan tugasnya berdasarkan konteks yang diberikan.
+Jawab dalam Bahasa Indonesia yang singkat, ramah, padat, dan langsung actionable.`;
 
-    const systemInstruction = `Kamu adalah Zalde AI Productivity Copilot, asisten pintar untuk aplikasi ZaldeTodo.
-Tugasmu adalah membantu ${userName} merencanakan, memprioritaskan, mengorganisir, dan menjawab pertanyaan seputar tugas harian mereka.
+    const userPrompt = `${contextLines.join("\n")}\n\n[PERTANYAAN]: ${message}`;
 
-Pedoman:
-1. Gunakan Bahasa Indonesia yang ramah, sopan, profesional, terstruktur, dan actionable.
-2. Selalu rujuk data tugas pengguna yang ada di konteks jika relevan.
-3. Berikan saran prioritas yang logis (misal: selesaikan yang urgent / deadline terdekat dulu).
-4. Gunakan bullet point atau nomor jika memberikan langkah atau daftar rekomendasi.`;
-
-    const userPrompt = `${contextText}\n\n[PERTANYAAN PENGGUNA]:\n${message}`;
-
-    // 4. Generate AI response
+    // Fast generation
     const aiResponse = await GeminiClient.generateContent(userPrompt, systemInstruction);
 
     return {
@@ -145,38 +131,29 @@ Pedoman:
   }
 
   /**
-   * AI Task Decomposition: generates subtasks array from task title & description
+   * Fast AI Task Decomposition
    */
   static async breakdownTask(title: string, description?: string): Promise<string[]> {
-    const prompt = `Pecah tugas berikut menjadi 3 sampai 6 subtask (langkah kerja spesifik, terukur, dan berurutan).
-Judul Tugas: "${title}"
-${description ? `Deskripsi: "${description}"` : ""}
-
-Format Output WAJIB berupa JSON Array murni tanpa format markdown tambahan, contoh:
-["Langkah 1...", "Langkah 2...", "Langkah 3..."]`;
+    const prompt = `Pecah tugas berikut menjadi 3-5 subtask singkat dan jelas.
+Judul: "${title}" ${description ? `| Deskripsi: "${description}"` : ""}
+Output HANYA JSON array: ["subtask 1", "subtask 2", ...]`;
 
     const response = await GeminiClient.generateContent(prompt);
 
     try {
-      // Clean possible markdown codeblock wrappers
-      const cleanJson = response
-        .replace(/```json/gi, "")
-        .replace(/```/g, "")
-        .trim();
-
+      const cleanJson = response.replace(/```json/gi, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleanJson);
       if (Array.isArray(parsed)) {
         return parsed.map((item) => String(item).trim()).filter(Boolean);
       }
-    } catch (err) {
-      console.warn("Failed to parse AI JSON response, falling back to line parsing:", err);
+    } catch {
+      // Line fallback
     }
 
-    // Fallback: line-by-line parsing if JSON parse failed
     return response
       .split("\n")
-      .map((line) => line.replace(/^[\d\-*.•\s]+/, "").trim())
-      .filter((line) => line.length > 2 && !line.startsWith("[") && !line.startsWith("]"))
-      .slice(0, 6);
+      .map((l) => l.replace(/^[\d\-*.•\s]+/, "").trim())
+      .filter((l) => l.length > 2 && !l.startsWith("[") && !l.startsWith("]"))
+      .slice(0, 5);
   }
 }

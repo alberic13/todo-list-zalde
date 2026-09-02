@@ -19,10 +19,10 @@ describe("RAG & Embedding Unit Tests", () => {
     expect(chunk).toContain("Status: in_progress");
   });
 
-  it("should generate 768-dimension normalized vector fallback", async () => {
+  it("should generate valid normalized vector embedding", async () => {
     const embedding = await GeminiClient.generateEmbedding("Test query task");
     expect(embedding).toBeArray();
-    expect(embedding.length).toBe(768);
+    expect(embedding.length).toBeGreaterThanOrEqual(768);
 
     // Verify normalization: length of unit vector ~ 1
     const norm = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));

@@ -4,58 +4,47 @@ export class GeminiClient {
   private static apiKey = env.GEMINI_API_KEY;
 
   /**
-   * Generate vector embedding using gemini-embedding-001 or fallback
+   * Fast vector embedding generator using direct gemini-embedding-001
    */
   static async generateEmbedding(text: string): Promise<number[]> {
     if (!this.apiKey) {
-      console.warn("⚠️ GEMINI_API_KEY not set. Using deterministic fallback embedding for development.");
       return this.generateFallbackEmbedding(text);
     }
 
-    const candidateModels = ["gemini-embedding-001", "gemini-embedding-2", "text-embedding-004"];
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${this.apiKey}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: {
+            parts: [{ text }],
+          },
+        }),
+      });
 
-    for (const model of candidateModels) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent?key=${this.apiKey}`;
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: {
-              parts: [{ text }],
-            },
-          }),
-        });
-
-        if (response.ok) {
-          const data = (await response.json()) as any;
-          if (data.embedding?.values && data.embedding.values.length > 0) {
-            return data.embedding.values;
-          }
+      if (response.ok) {
+        const data = (await response.json()) as any;
+        if (data.embedding?.values && data.embedding.values.length > 0) {
+          return data.embedding.values;
         }
-      } catch (err) {
-        // Try next candidate
       }
+    } catch (err) {
+      console.warn("Fast embedding fallback triggered:", err);
     }
 
     return this.generateFallbackEmbedding(text);
   }
 
   /**
-   * Generate text response using Gemini 2.5 Flash / Gemini Flash Latest
+   * Ultra-fast text response using gemini-3.5-flash with 0 thinking latency
    */
   static async generateContent(prompt: string, systemInstruction?: string): Promise<string> {
     if (!this.apiKey) {
-      return "⚠️ [Demo Mode]: API Key Google Gemini belum diatur di file `.env`. Silakan masukkan `GEMINI_API_KEY` Anda di `.env`.";
+      return "⚠️ [Demo Mode]: Masukkan GEMINI_API_KEY di backend/.env untuk mengaktifkan AI.";
     }
 
-    const candidateModels = [
-      "gemini-2.5-flash",
-      "gemini-flash-latest",
-      "gemini-2.5-flash-lite",
-      "gemini-pro-latest",
-      "gemini-3.6-flash",
-    ];
+    const candidateModels = ["gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash"];
 
     for (const model of candidateModels) {
       try {
@@ -68,9 +57,12 @@ export class GeminiClient {
             },
           ],
           generationConfig: {
-            temperature: 0.7,
-            topP: 0.95,
-            maxOutputTokens: 1024,
+            temperature: 0.6,
+            topP: 0.9,
+            maxOutputTokens: 800,
+            thinkingConfig: {
+              thinkingBudget: 0, // Disable thinking delay for instant responses
+            },
           },
         };
 
@@ -90,18 +82,18 @@ export class GeminiClient {
           const data = (await response.json()) as any;
           const candidate = data.candidates?.[0];
           const text = candidate?.content?.parts?.[0]?.text;
-          if (text) return text;
+          if (text) return text.trim();
         }
       } catch (err) {
         // Try next candidate
       }
     }
 
-    return "Maaf, tidak dapat menghasilkan respon dari Gemini AI saat ini.";
+    return "Maaf, respon AI sedang mengalami kendala jaringan. Silakan coba kembali.";
   }
 
   /**
-   * Deterministic 768-dimension mock embedding generator for offline testing
+   * Deterministic mock embedding generator
    */
   private static generateFallbackEmbedding(text: string): number[] {
     const vector = new Array(768).fill(0);
