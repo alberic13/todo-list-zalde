@@ -39,9 +39,9 @@ export const AuthPage: React.FC = () => {
   };
 
   const handleDemoFill = () => {
-    setName("Zalde Developer");
-    setEmail("demo@zalde.dev");
-    setPassword("password123");
+    setName("Zalde Demo User");
+    setEmail("demo@zalde.com");
+    setPassword("Password123!");
     setIsRegister(false);
   };
 
@@ -163,11 +163,6 @@ export const AuthPage: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Footer info */}
-        <p className="text-center text-[11px] text-slate-500 font-medium">
-          Smart Productivity Suite
-        </p>
       </div>
     </div>
   );
