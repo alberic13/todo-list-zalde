@@ -105,14 +105,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 </span>
               </div>
 
-              <button
-                type="button"
-                onClick={() => onOpenCreateTaskWithStatus(col.id)}
-                className="w-7 h-7 rounded-xl bg-white hover:bg-slate-900 hover:text-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-sm transition-all"
-                title={`Tambah di ${col.title}`}
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+              {col.id === "todo" && (
+                <button
+                  type="button"
+                  onClick={() => onOpenCreateTaskWithStatus(col.id)}
+                  className="w-7 h-7 rounded-xl bg-white hover:bg-slate-900 hover:text-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-sm transition-all"
+                  title={`Tambah di ${col.title}`}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
             {/* Task Cards Drop Zone */}
