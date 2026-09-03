@@ -26,4 +26,11 @@ export const authService = {
       method: "GET",
     });
   },
+
+  async updateProfile(data: { name?: string; phoneNumber?: string }): Promise<User> {
+    return request<User>("/api/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
 };

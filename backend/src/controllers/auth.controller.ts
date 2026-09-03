@@ -88,4 +88,36 @@ export const authController = new Elysia({ prefix: "/api/auth" })
         summary: "Get current user profile",
       },
     }
+  )
+  // PATCH /api/auth/profile
+  .patch(
+    "/profile",
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
+      }
+
+      try {
+        const updated = await AuthService.updateProfile(user.id, {
+          name: body.name,
+          phoneNumber: body.phoneNumber,
+        });
+
+        return successResponse(updated, "Profile updated successfully");
+      } catch (err: any) {
+        set.status = 400;
+        return errorResponse(err.message || "Failed to update profile");
+      }
+    },
+    {
+      body: t.Object({
+        name: t.Optional(t.String({ minLength: 2, maxLength: 255 })),
+        phoneNumber: t.Optional(t.String({ maxLength: 50 })),
+      }),
+      detail: {
+        tags: ["Auth"],
+        summary: "Update user profile",
+      },
+    }
   );

@@ -5,6 +5,7 @@ import { StatOverview } from "../components/stats/StatOverview";
 import { FilterBar } from "../components/tasks/FilterBar";
 import { KanbanBoard } from "../components/tasks/KanbanBoard";
 import { TaskModal } from "../components/tasks/TaskModal";
+import { SettingsModal } from "../components/layout/SettingsModal";
 import { AiChatDrawer } from "../components/ai/AiChatDrawer";
 import { Task, TaskStatus } from "../types";
 import { Bot } from "lucide-react";
@@ -32,6 +33,7 @@ export const Dashboard: React.FC = () => {
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [defaultModalStatus, setDefaultModalStatus] = useState<TaskStatus>("todo");
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleOpenCreateTaskWithStatus = (status: TaskStatus) => {
     setTaskToEdit(null);
@@ -60,6 +62,7 @@ export const Dashboard: React.FC = () => {
         onSearchChange={(q) => setFilters({ ...filters, search: q })}
         isSemanticSearch={isSemanticSearch}
         onToggleSemanticSearch={toggleSemanticSearch}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* Main Workspace Container */}
@@ -120,6 +123,12 @@ export const Dashboard: React.FC = () => {
         onToggleSubtask={toggleSubtask}
         onAddSubtask={addSubtask}
         onDeleteSubtask={deleteSubtask}
+      />
+
+      {/* WhatsApp Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
 
       {/* Floating AI Trigger Button */}

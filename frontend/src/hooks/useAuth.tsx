@@ -9,6 +9,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  updateProfile: (data: { name?: string; phoneNumber?: string }) => Promise<User>;
   logout: () => void;
 }
 
@@ -57,6 +58,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(res.user);
   };
 
+  const updateProfile = async (data: { name?: string; phoneNumber?: string }): Promise<User> => {
+    const updated = await authService.updateProfile(data);
+    setUser((prev) => (prev ? { ...prev, ...updated } : updated));
+    return updated;
+  };
+
   const logout = () => {
     localStorage.removeItem("auth_token");
     setToken(null);
@@ -72,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         register,
+        updateProfile,
         logout,
       }}
     >

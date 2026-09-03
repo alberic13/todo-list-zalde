@@ -4,6 +4,7 @@ import { Button } from "../ui/Button";
 import {
   LogOut,
   Search,
+  Settings,
 } from "lucide-react";
 
 export interface NavbarProps {
@@ -11,6 +12,7 @@ export interface NavbarProps {
   onSearchChange: (query: string) => void;
   isSemanticSearch: boolean;
   onToggleSemanticSearch: () => void;
+  onOpenSettings?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,6 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
   isSemanticSearch,
   onToggleSemanticSearch,
+  onOpenSettings,
 }) => {
   const { user, logout } = useAuth();
 
@@ -91,11 +94,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Actions & Profile */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          {/* Settings Gear Button (Clean Icon Only) */}
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            title="Pengaturan Integrasi WhatsApp"
+            className="p-1.5 text-slate-500 hover:text-slate-900 transition-colors duration-200 active:scale-95 group"
+          >
+            <Settings className="w-4 h-4 group-hover:rotate-45 transition-transform duration-300" />
+          </button>
+
+          {/* Subtle separator */}
+          <div className="h-5 w-[1px] bg-slate-200/80 mx-0.5" />
+
           {/* User Profile & Logout */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pl-0.5">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-xs shadow-sm ring-2 ring-white/80">
                 {(user?.name || "U")[0].toUpperCase()}
               </div>
               <div className="hidden lg:block text-left">
@@ -113,7 +129,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               size="icon"
               onClick={logout}
               title="Logout"
-              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50"
+              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50/80 rounded-xl transition-all"
             >
               <LogOut className="w-4 h-4" />
             </Button>

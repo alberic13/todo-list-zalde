@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../../utils/cn";
 import { X } from "lucide-react";
 
@@ -41,8 +42,8 @@ export const Modal: React.FC<ModalProps> = ({
     "2xl": "max-w-2xl",
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-950/40 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
@@ -52,7 +53,7 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Modal Dialog */}
       <div
         className={cn(
-          "relative w-full rounded-3xl glass-panel p-6 sm:p-8 shadow-2xl border border-white/90 bg-white/95 backdrop-blur-2xl z-10 transition-all transform animate-in zoom-in-95 duration-200 text-slate-900",
+          "relative w-full rounded-3xl glass-panel p-6 sm:p-8 shadow-2xl border border-white/90 bg-white/95 backdrop-blur-2xl z-10 transition-all transform animate-in zoom-in-95 duration-200 text-slate-900 my-auto",
           maxWidthClasses[maxWidth],
           className
         )}
@@ -82,4 +83,8 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 };
