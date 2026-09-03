@@ -48,9 +48,9 @@ todo-list-zalde/
 ├── backend/                    # Bun + Elysia.js + Drizzle ORM + pgvector
 │   ├── src/
 │   │   ├── config/             # DB (Neon), AI (Gemini client), & Env config
-│   │   ├── controllers/        # Auth, Task, Category, AI endpoints
+│   │   ├── controllers/        # Auth (Profile & Phone), Task, Category, AI endpoints
 │   │   ├── middlewares/        # JWT Auth & Centralized Error handlers
-│   │   ├── models/             # Drizzle PostgreSQL schemas & vector768 types
+│   │   ├── models/             # Drizzle PostgreSQL schemas (users.phone_number, tasks, vectors)
 │   │   ├── services/           # Auth, Task, Category, Embedding, & RAG logic
 │   │   ├── utils/              # Standardized response formatters
 │   │   └── index.ts            # Elysia Server & Swagger API entry point
@@ -61,12 +61,17 @@ todo-list-zalde/
 ├── frontend/                   # React 19 + TypeScript + Tailwind CSS v4 + Vite
 │   ├── public/                 # Static assets & icons
 │   ├── src/
-│   │   ├── components/         # UI Elements, Layout (Navbar), Tasks (Card & Modal), AI Copilot
-│   │   ├── hooks/              # useAuth, useTasks custom state hooks
-│   │   ├── pages/              # Dashboard (Kanban board) & AuthPage (Login/Register)
+│   │   ├── components/         # UI Elements (Modal with Portal), Layout (Navbar & SettingsModal), Tasks, AI Drawer
+│   │   │   ├── ai/             # AiChatDrawer (WhatsApp 1-Click share & contextual copilot)
+│   │   │   ├── layout/         # Navbar (Mac-style gear trigger), SettingsModal (WhatsApp phone setup)
+│   │   │   ├── stats/          # StatOverview & progress cards
+│   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar
+│   │   │   └── ui/             # Button, Input, Badge, Modal (React Portal), Skeleton
+│   │   ├── hooks/              # useAuth (with profile & phone state), useTasks custom state hooks
+│   │   ├── pages/              # Dashboard (Kanban workspace) & AuthPage (Login/Register)
 │   │   ├── services/           # Axios/Fetch API client & error handling
 │   │   ├── types/              # TypeScript definitions & data contracts
-│   │   └── utils/              # Date formatters & helpers
+│   │   └── utils/              # Date formatters & styling helpers
 │   ├── index.html
 │   ├── vite.config.ts
 │   ├── vercel.json             # Frontend SPA route rewrites configuration
@@ -76,6 +81,25 @@ todo-list-zalde/
 ├── package.json                # Root workspace orchestrator (lint, test, build scripts)
 └── README.md
 ```
+
+---
+
+## ✨ Fitur Utama (Features)
+
+1. **📋 Manajemen Tugas & Visualisasi Kanban**:
+   - CRUD Todo, subtasks checklist bertingkat, kategori kustom dengan warna unik.
+   - Status tracking interaktif (*Todo*, *In Progress*, *Done*) & filter prioritas (*Low*, *Medium*, *High*, *Urgent*).
+2. **🧠 AI Assistant dengan RAG (Retrieval-Augmented Generation)**:
+   - Floating Copilot drawer cerdas yang memahami konteks seluruh tugas tersimpan via semantic vector search.
+   - **Semantic Search Engine**: Pencarian tugas berdasarkan makna bahasa alami.
+   - **AI Task Decomposition (Breakdown)**: Memecah tugas besar menjadi subtasks otomatis dalam 1 klik.
+3. **📲 Integrasi WhatsApp Jadwal Prioritas**:
+   - **Pengaturan Nomor Akun**: Simpan nomor WhatsApp pengguna langsung ke database PostgreSQL (`users.phone_number`).
+   - **1-Click WhatsApp Delivery**: Zalde AI merangkum jadwal prioritas harian dan menyediakan tombol direct chat WhatsApp terformat rapi.
+   - **UI/UX macOS Theme**: Trigger icon gear minimalis di navbar dengan pop-up React Portal terpusat.
+4. **🔒 Keamanan & Type-Safety End-to-End**:
+   - Autentikasi JWT dengan password hashing Argon2id.
+   - Validasi schema input TypeBox & proteksi SQL Injection via Drizzle ORM.
 
 ---
 
@@ -138,13 +162,34 @@ npm run test:all
 | Test Suite | File Uji | Status | Cakupan |
 |---|---|---|---|
 | **Backend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
-| **Frontend Typecheck** | `tsc -b && vite build` | ✅ PASS | 0 Type Error, Build Sukses (3.7s) |
+| **Frontend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
+| **Frontend Build** | `tsc -b && vite build` | ✅ PASS | Production bundle terkompresi (~88 kB Gzip) |
 | **API & Security** | `test/auth.test.ts` | ✅ PASS (4/4) | Standardized JSON Response, Auth Guard, Health Check |
 | **E2E Task Flow** | `test/e2e.test.ts` | ✅ PASS (4/4) | Register ➔ Login ➔ Task & Subtasks CRUD ➔ Stats |
 | **RAG & Vector Search** | `test/rag.test.ts` | ✅ PASS (2/2) | Text Chunking & L2-Normalized Vector Embeddings |
 
-### 🖥️ Output Log Eksekusi Test Suite (`npm run test`):
+### 🖥️ Output Log Eksekusi QA Suite (`npm run test:all`):
 ```text
+> todo-list-zalde@1.0.0 test:all
+> npm run lint && npm run test
+
+> todo-list-zalde@1.0.0 lint
+> npm run lint:backend && npm run lint:frontend
+
+> todo-list-zalde@1.0.0 lint:backend
+> cd backend && bun run typecheck
+
+$ tsc --noEmit
+
+> todo-list-zalde@1.0.0 lint:frontend
+> cd frontend && npm run lint
+
+> frontend@1.0.0 lint
+> tsc --noEmit
+
+> todo-list-zalde@1.0.0 test
+> cd backend && bun test
+
 bun test v1.3.14 (0d9b296a)
 
 test\auth.test.ts:
@@ -166,7 +211,7 @@ test\rag.test.ts:
  10 pass
  0 fail
  38 expect() calls
-Ran 10 tests across 3 files. [1.70s]
+Ran 10 tests across 3 files. [10.97s]
 ```
 
 ---
@@ -175,4 +220,5 @@ Ran 10 tests across 3 files. [1.70s]
 
 - [x] **Fase 1**: Core Foundation, Auth JWT, Drizzle Schema, Task CRUD, List & Kanban View.
 - [x] **Fase 2**: RAG Integration, `pgvector` Semantic Search, Gemini Task Breakdown, AI Chat Copilot Drawer.
-- [x] **Fase 3**: Automated CI/CD Data Pipeline & Production Vercel + Neon DB Deployment.
+- [x] **Fase 3**: Integrasi WhatsApp Jadwal Prioritas, Database Profile Persistence, & UI/UX Refinements.
+- [x] **Fase 4**: Automated CI/CD Data Pipeline & Production Vercel + Neon DB Deployment.
