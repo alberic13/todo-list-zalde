@@ -112,3 +112,58 @@
   60% { transform: translateX(-3px); }
   80% { transform: translateX(2px); }
 }
+
+/* ─── Staggered Fade-Up (right panel) ─── */
+@keyframes auth-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-stagger {
+  opacity: 0;
+  animation: auth-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.auth-stagger-1 { animation-delay: 0.08s; }
+.auth-stagger-2 { animation-delay: 0.16s; }
+.auth-stagger-3 { animation-delay: 0.24s; }
+.auth-stagger-4 { animation-delay: 0.32s; }
+.auth-stagger-5 { animation-delay: 0.40s; }
+.auth-stagger-6 { animation-delay: 0.48s; }
+.auth-stagger-7 { animation-delay: 0.56s; }
+
+/* ─── Slide from Left (left panel) ─── */
+@keyframes auth-slide-left {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.auth-slide-left {
+  opacity: 0;
+  animation: auth-slide-left 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.auth-slide-left-1 { animation-delay: 0.1s; }
+.auth-slide-left-2 { animation-delay: 0.25s; }
+.auth-slide-left-3 { animation-delay: 0.4s; }
+
+/* ─── Gradient Text Shimmer ─── */
+@keyframes auth-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.auth-gradient-shimmer {
+  background-size: 200% auto;
+  animation: auth-shimmer 6s linear infinite;
+}
+
+/* ─── Feature Pill Glow ─── */
+@keyframes auth-pill-glow {
+  0%, 100% { border-color: rgba(255,255,255,0.1); }
+  50% { border-color: rgba(255,255,255,0.22); }
+}
+
+.auth-pill-glow {
+  animation: auth-pill-glow 3s ease-in-out infinite;
+}

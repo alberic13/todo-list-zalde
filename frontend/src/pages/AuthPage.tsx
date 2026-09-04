@@ -31,8 +31,8 @@ export const AuthPage: React.FC = () => {
       } else {
         await login(email.trim(), password);
       }
-    } catch (err: any) {
-      setError(err.message || "Gagal melakukan autentikasi");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Gagal melakukan autentikasi");
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +55,7 @@ export const AuthPage: React.FC = () => {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }} />
 
         {/* Top: Brand mark */}
-        <div className="relative z-10">
+        <div className="relative z-10 auth-slide-left auth-slide-left-1">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15">
             <div className="w-2 h-2 rounded-full bg-rose-400" />
             <div className="w-2 h-2 rounded-full bg-amber-400" />
@@ -65,11 +65,11 @@ export const AuthPage: React.FC = () => {
         </div>
 
         {/* Center: Hero text */}
-        <div className="relative z-10 space-y-6 max-w-md">
+        <div className="relative z-10 space-y-6 max-w-md auth-slide-left auth-slide-left-2">
           <h2 className="text-4xl xl:text-5xl font-black text-white leading-[1.1] tracking-tight">
             Organisasi tugas
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300">lebih cerdas.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 auth-gradient-shimmer">lebih cerdas.</span>
           </h2>
           <p className="text-white/55 text-sm leading-relaxed max-w-sm">
             task management dengan semantic search, Drag and Drop, dan asisten AI -produktivitas kontekstual.
@@ -78,7 +78,7 @@ export const AuthPage: React.FC = () => {
           {/* Feature pills */}
           <div className="flex flex-wrap gap-2 pt-2">
             {["AI integrated", "Semantic Search"].map((text) => (
-              <div key={text} className="inline-flex items-center text-[11px] font-medium text-white/60 bg-white/8 border border-white/10 rounded-full px-3 py-1.5">
+              <div key={text} className="inline-flex items-center text-[11px] font-medium text-white/60 bg-white/8 border border-white/10 rounded-full px-3 py-1.5 auth-pill-glow">
                 {text}
               </div>
             ))}
@@ -86,7 +86,7 @@ export const AuthPage: React.FC = () => {
         </div>
 
         {/* Bottom: Subtle decorative orbs */}
-        <div className="relative z-10">
+        <div className="relative z-10 auth-slide-left auth-slide-left-3">
           <p className="text-white/25 text-[11px] font-medium tracking-wider uppercase">
             © 2026 Zalde Productivity Suite
           </p>
@@ -120,7 +120,7 @@ export const AuthPage: React.FC = () => {
           </div>
 
           {/* Desktop greeting */}
-          <div className="hidden lg:block mb-8">
+          <div className="hidden lg:block mb-8 auth-stagger auth-stagger-1">
             <p className="text-sm font-medium text-slate-400 mb-1">
               {isRegister ? "Mulai perjalananmu" : "Selamat datang kembali"}
             </p>
@@ -133,7 +133,7 @@ export const AuthPage: React.FC = () => {
           <div className="rounded-2xl lg:rounded-3xl bg-white/80 lg:bg-white/60 backdrop-blur-xl border border-slate-200/70 lg:border-slate-200/50 shadow-xl shadow-slate-900/[0.04] p-6 sm:p-7 auth-card-enter">
 
             {/* Tab Switcher */}
-            <div className="flex p-1 rounded-xl bg-slate-100/80 border border-slate-200/60 mb-6">
+            <div className="flex p-1 rounded-xl bg-slate-100/80 border border-slate-200/60 mb-6 auth-stagger auth-stagger-2">
               <button
                 type="button"
                 onClick={() => {
@@ -173,7 +173,7 @@ export const AuthPage: React.FC = () => {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 auth-stagger auth-stagger-3">
               {isRegister && (
                 <Input
                   label="Nama Lengkap"
@@ -217,7 +217,7 @@ export const AuthPage: React.FC = () => {
             </form>
 
             {/* Divider */}
-            <div className="relative my-6">
+            <div className="relative my-6 auth-stagger auth-stagger-5">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200/60" />
               </div>
@@ -232,14 +232,14 @@ export const AuthPage: React.FC = () => {
             <button
               type="button"
               onClick={handleDemoFill}
-              className="w-full inline-flex items-center justify-center gap-2 text-xs text-slate-600 hover:text-slate-900 font-semibold py-2.5 px-4 rounded-xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300/80 transition-all duration-200 group"
+              className="w-full inline-flex items-center justify-center gap-2 text-xs text-slate-600 hover:text-slate-900 font-semibold py-2.5 px-4 rounded-xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300/80 transition-all duration-200 auth-stagger auth-stagger-6"
             >
               Login Cepat dengan Akun Demo
             </button>
           </div>
 
           {/* Bottom subtle text */}
-          <p className="text-center text-[11px] text-slate-400 mt-6 font-medium">
+          <p className="text-center text-[11px] text-slate-400 mt-6 font-medium auth-stagger auth-stagger-7">
             Dilindungi enkripsi end-to-end & JWT Auth
           </p>
         </div>
