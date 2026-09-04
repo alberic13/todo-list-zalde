@@ -17,13 +17,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   isSemanticSearch = false,
   onToggleSemanticSearch,
 }) => {
-  const statusTabs = [
-    { key: "all", label: "Semua" },
-    { key: "todo", label: "Belum Mulai" },
-    { key: "in_progress", label: "Berjalan" },
-    { key: "done", label: "Selesai" },
-  ];
-
   const todayJakarta = new Intl.DateTimeFormat("id-ID", {
     timeZone: "Asia/Jakarta",
     weekday: "short",
@@ -62,30 +55,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Top Filter Row */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Status Pill Tabs */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 card-shadow overflow-x-auto max-w-full">
-          {statusTabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => onFilterChange({ ...filters, status: tab.key })}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                filters.status === tab.key
-                  ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Today Date Badge (Asia/Jakarta) */}
+        <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-white/90 border border-slate-200/80 text-xs text-slate-700 font-semibold shrink-0 shadow-sm">
+          <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+          <span>{todayJakarta}</span>
         </div>
 
-        {/* Dropdowns (Date Badge, Priority & Sort) */}
+        {/* Dropdowns (Priority & Sort) */}
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          {/* Today Date Badge (Asia/Jakarta) */}
-          <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-white/90 border border-slate-200/80 text-xs text-slate-700 font-semibold shrink-0 shadow-sm">
-            <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-            <span>{todayJakarta}</span>
-          </div>
 
           {/* Priority Select */}
           <div className="relative flex items-center">
