@@ -67,3 +67,48 @@
   border-color: rgba(255, 255, 255, 0.95);
   transform: translateY(-2px);
 }
+
+/* ─── Auth Page Premium Animations ─── */
+.auth-gradient-mesh {
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 90%, hsla(270, 60%, 28%, 0.9) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 80% 10%, hsla(330, 55%, 25%, 0.8) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 70% at 50% 50%, hsla(240, 50%, 18%, 0.95) 0%, transparent 70%),
+    linear-gradient(145deg, hsl(250, 30%, 10%) 0%, hsl(270, 25%, 8%) 50%, hsl(300, 20%, 7%) 100%);
+}
+
+@keyframes auth-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(10px, -15px) scale(1.05); }
+  66% { transform: translate(-8px, 8px) scale(0.97); }
+}
+
+@keyframes auth-float-rev {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-12px, -10px) scale(1.03); }
+}
+
+.auth-float-slow { animation: auth-float 12s ease-in-out infinite; }
+.auth-float-slower { animation: auth-float 18s ease-in-out infinite; }
+.auth-float-reverse { animation: auth-float-rev 15s ease-in-out infinite; }
+
+.auth-card-enter {
+  animation: auth-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes auth-rise {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.auth-shake {
+  animation: auth-shake-kf 0.4s ease-in-out;
+}
+
+@keyframes auth-shake-kf {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
