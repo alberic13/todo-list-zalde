@@ -120,8 +120,8 @@ export class TaskService {
       }
     }
 
-    // Trigger vector embedding pipeline asynchronously
-    EmbeddingService.syncTaskEmbedding(newTask.id, userId).catch((err) =>
+    // Await embedding sync to guarantee execution in serverless environments (Vercel)
+    await EmbeddingService.syncTaskEmbedding(newTask.id, userId).catch((err) =>
       console.error("Auto embedding sync error:", err)
     );
 
@@ -149,8 +149,8 @@ export class TaskService {
 
     if (!updated) return null;
 
-    // Trigger re-embedding sync asynchronously
-    EmbeddingService.syncTaskEmbedding(id, userId).catch((err) =>
+    // Await re-embedding sync to guarantee execution in serverless environments
+    await EmbeddingService.syncTaskEmbedding(id, userId).catch((err) =>
       console.error("Auto re-embedding sync error:", err)
     );
 
@@ -165,7 +165,7 @@ export class TaskService {
       .returning();
 
     if (updated) {
-      EmbeddingService.syncTaskEmbedding(id, userId).catch(console.error);
+      await EmbeddingService.syncTaskEmbedding(id, userId).catch(console.error);
     }
 
     return updated ? await this.getById(id, userId) : null;
@@ -184,39 +184,28 @@ export class TaskService {
   }
 
   static async getStats(userId: string) {
-    const allTasks = await db
+    const stats = await db
       .select({
-        status: tasks.status,
-        dueDate: tasks.dueDate,
+        total: sql<number>`count(*)`,
+        todo: sql<number>`count(*) filter (where ${tasks.status} = 'todo')`,
+        inProgress: sql<number>`count(*) filter (where ${tasks.status} = 'in_progress')`,
+        done: sql<number>`count(*) filter (where ${tasks.status} = 'done')`,
+        overdue: sql<number>`count(*) filter (where ${tasks.status} != 'done' and ${tasks.dueDate} < now())`,
       })
       .from(tasks)
       .where(eq(tasks.userId, userId));
 
-    const total = allTasks.length;
-    let todo = 0;
-    let inProgress = 0;
-    let done = 0;
-    let overdue = 0;
-    const now = new Date();
-
-    for (const t of allTasks) {
-      if (t.status === "todo") todo++;
-      else if (t.status === "in_progress") inProgress++;
-      else if (t.status === "done") done++;
-
-      if (t.status !== "done" && t.dueDate && new Date(t.dueDate) < now) {
-        overdue++;
-      }
-    }
-
+    const s = stats[0] || { total: 0, todo: 0, inProgress: 0, done: 0, overdue: 0 };
+    const total = Number(s.total) || 0;
+    const done = Number(s.done) || 0;
     const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
 
     return {
       total,
-      todo,
-      inProgress,
+      todo: Number(s.todo) || 0,
+      inProgress: Number(s.inProgress) || 0,
       done,
-      overdue,
+      overdue: Number(s.overdue) || 0,
       completionRate,
     };
   }

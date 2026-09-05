@@ -2,7 +2,6 @@ import { eq } from "drizzle-orm";
 import { db, sql } from "../config/db";
 import { users, categories, tasks, subtasks } from "../models/schema";
 import { EmbeddingService } from "../services/embedding.service";
-import { RagService } from "../services/rag.service";
 
 async function seed() {
   console.log("🌱 Memulai proses seeding database...");
@@ -45,10 +44,10 @@ async function seed() {
 
     // 3. Insert Categories
     const categoryData = [
-      { name: "Work & Project", colorHex: "#6366f1" },
-      { name: "Personal & Health", colorHex: "#10b981" },
-      { name: "Learning & AI", colorHex: "#f59e0b" },
-      { name: "Finance", colorHex: "#ec4899" },
+      { name: "Tugas Kuliah & Skripsi", colorHex: "#6366f1" },
+      { name: "Freelance & Coding", colorHex: "#10b981" },
+      { name: "Organisasi BEM/HIMA", colorHex: "#f59e0b" },
+      { name: "Personal & Keuangan", colorHex: "#ec4899" },
     ];
 
     const insertedCategories = await db
@@ -70,105 +69,92 @@ async function seed() {
     // 4. Insert Dummy Tasks & Subtasks
     const taskData = [
       {
-        title: "Integrasi Payment Gateway Stripe & Midtrans",
-        description: "Setup webhook, handle idempotency key, dan integrasi recurring subscription.",
-        categoryId: getCatId("Work & Project"),
+        title: "Revisi Bab 1-3 Skripsi (Sistem Pakar AI)",
+        description: "Perbaiki latar belakang dan tambah jurnal referensi tahun 2023-2025 sesuai coretan Dospem.",
+        categoryId: getCatId("Tugas Kuliah & Skripsi"),
         status: "todo",
         priority: "urgent",
         dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // +2 hari
         subtasks: [
-          { title: "Daftar akun sandbox dan dapatkan API keys", isCompleted: true },
-          { title: "Buat endpoint webhook receiver dengan signature check", isCompleted: false },
-          { title: "Uji coba pembayaran kartu kredit & QRIS", isCompleted: false },
+          { title: "Cari 5 jurnal nasional SINTA 2 terbaru", isCompleted: true },
+          { title: "Perbaiki rumusan masalah", isCompleted: false },
+          { title: "Bimbingan revisi ke ruangan Dospem", isCompleted: false },
         ],
       },
       {
-        title: "Optimasi Query Database & Indexing pgvector",
-        description: "Benchmark query latency dan pasang HNSW index pada tabel task_embeddings.",
-        categoryId: getCatId("Work & Project"),
+        title: "Selesaikan Modul Auth - Freelance Project Kasir",
+        description: "Implementasi JWT Login, Role Based Access (Admin & Kasir), dan integrasi API.",
+        categoryId: getCatId("Freelance & Coding"),
         status: "in_progress",
         priority: "high",
         dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // +3 hari
         subtasks: [
-          { title: "Analisis slow query dengan EXPLAIN ANALYZE", isCompleted: true },
-          { title: "Tuning connection pool pada postgres client", isCompleted: true },
-          { title: "Testing load 500 concurrent semantic search requests", isCompleted: false },
+          { title: "Setup tabel Users di PostgreSQL", isCompleted: true },
+          { title: "Buat endpoint /login & /register", isCompleted: true },
+          { title: "Integrasi dengan UI React Frontend", isCompleted: false },
         ],
       },
       {
-        title: "Desain UI/UX Dashboard Todo List Glassmorphism",
-        description: "Implementasi desain modern Tailwind CSS v4, smooth animations, dan responsive layout.",
-        categoryId: getCatId("Work & Project"),
-        status: "done",
+        title: "Belajar Next.js 14 & Tailwind CSS v4",
+        description: "Bikin personal website & portofolio untuk persiapan lamar magang MBKM.",
+        categoryId: getCatId("Freelance & Coding"),
+        status: "in_progress",
         priority: "medium",
+        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), 
+        subtasks: [
+          { title: "Tonton tutorial App Router Next.js", isCompleted: true },
+          { title: "Desain wireframe portofolio di Figma", isCompleted: true },
+          { title: "Slicing UI halaman Home dan Projects", isCompleted: false },
+        ],
+      },
+      {
+        title: "Tugas Besar Pemrograman Web Lanjut",
+        description: "Membuat aplikasi CRUD menggunakan stack MERN atau T3 Stack. Kelompok 4.",
+        categoryId: getCatId("Tugas Kuliah & Skripsi"),
+        status: "done",
+        priority: "high",
         dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Kemarin
         subtasks: [
-          { title: "Riset palet warna HSL dan typography Google Fonts", isCompleted: true },
-          { title: "Buat komponen KanbanBoard dan TaskModal", isCompleted: true },
-          { title: "Integrasi micro-interactions dan filter bar", isCompleted: true },
+          { title: "Bagi tugas kelompok", isCompleted: true },
+          { title: "Koding bagian backend API", isCompleted: true },
+          { title: "Deploy ke Vercel & presentasi", isCompleted: true },
         ],
       },
       {
-        title: "Eksplorasi Fitur Gemini 2.0 Flash & RAG Pipeline",
-        description: "Implementasi context caching dan multi-turn semantic task breakdown.",
-        categoryId: getCatId("Learning & AI"),
-        status: "in_progress",
-        priority: "high",
-        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-        subtasks: [
-          { title: "Baca dokumentasi resmi Google Gemini API v1beta", isCompleted: true },
-          { title: "Buat service embedding text-embedding-004", isCompleted: true },
-          { title: "Implementasi cosine similarity search in-memory", isCompleted: true },
-          { title: "Integrasi drawer Copilot dengan prompt guardrails", isCompleted: false },
-        ],
-      },
-      {
-        title: "Membaca Buku System Design & Cloud Architecture",
-        description: "Bab 4-6: Distributed Caching, Message Queues (Kafka), dan Eventual Consistency.",
-        categoryId: getCatId("Learning & AI"),
-        status: "todo",
-        priority: "low",
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        subtasks: [
-          { title: "Membaca bab Distributed Cache (Redis cluster)", isCompleted: false },
-          { title: "Membuat ringkasan mindmap arsitektur", isCompleted: false },
-        ],
-      },
-      {
-        title: "Olahraga Pagi & Jogging 5 KM",
-        description: "Target pace 6:00 min/km di lintasan Gelora Bung Karno.",
-        categoryId: getCatId("Personal & Health"),
-        status: "done",
-        priority: "medium",
-        dueDate: new Date(),
-        subtasks: [
-          { title: "Pemanasan statis & dinamis 10 menit", isCompleted: true },
-          { title: "Lari 5 kilometer non-stop", isCompleted: true },
-          { title: "Pendinginan dan rehidrasi elektrolit", isCompleted: true },
-        ],
-      },
-      {
-        title: "Medical Checkup & Konsultasi Dokter",
-        description: "Pemeriksaan kesehatan rutin tahunan dan tes darah lengkap.",
-        categoryId: getCatId("Personal & Health"),
+        title: "Rapat Divisi Kominfo Himpunan (HIMA)",
+        description: "Bahas desain poster untuk acara Seminar Nasional IT bulan depan.",
+        categoryId: getCatId("Organisasi BEM/HIMA"),
         status: "todo",
         priority: "medium",
+        dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // +1 hari
+        subtasks: [
+          { title: "Buat draft timeline publikasi", isCompleted: false },
+          { title: "Siapkan 2 alternatif template desain", isCompleted: false },
+        ],
+      },
+      {
+        title: "Bayar Uang Kuliah Tunggal (UKT) Semester Akhir",
+        description: "Batas pembayaran tanggal 20. Jangan sampai telat agar bisa isi KRS.",
+        categoryId: getCatId("Personal & Keuangan"),
+        status: "todo",
+        priority: "urgent",
         dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
         subtasks: [
-          { title: "Booking jadwal di klinik mitra", isCompleted: true },
-          { title: "Puasa 10 jam sebelum tes darah", isCompleted: false },
+          { title: "Minta uang UKT ke orang tua / cairkan tabungan", isCompleted: false },
+          { title: "Bayar via Virtual Account Bank", isCompleted: false },
+          { title: "Cetak bukti bayar & lapor ke BAAK", isCompleted: false },
         ],
       },
       {
-        title: "Review Laporan Keuangan Bulanan & Budgeting Investasi",
-        description: "Evaluasi pengeluaran bulanan dan alokasi portofolio reksadana/saham.",
-        categoryId: getCatId("Finance"),
+        title: "Olahraga Pagi (Jogging Keliling Kampus)",
+        description: "Jaga kesehatan biar gak gampang sakit pas lagi banyak tugas.",
+        categoryId: getCatId("Personal & Keuangan"),
         status: "done",
-        priority: "high",
+        priority: "low",
         dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         subtasks: [
-          { title: "Rekap mutasi rekening bank dan e-wallet", isCompleted: true },
-          { title: "Alokasi dana darurat dan investasi rutin", isCompleted: true },
+          { title: "Pemanasan", isCompleted: true },
+          { title: "Lari 3 KM", isCompleted: true },
         ],
       },
     ];
@@ -206,22 +192,6 @@ async function seed() {
     }
 
     console.log(`✅ ${taskData.length} Task beserta subtask & vector embeddings berhasil dibuat.`);
-    
-    console.log("\n🧪 MENGUJI COBA AI SEMANTIC SEARCH (pgvector + HNSW)...");
-    console.log("Query: 'kendaraan' (tidak ada kata ini di judul task manapun)");
-    
-    const searchStart = performance.now();
-    const searchResults = await RagService.semanticSearch(userId, "kendaraan", 3);
-    const searchTime = (performance.now() - searchStart).toFixed(2);
-    
-    console.log(`⏱️ Selesai dalam ${searchTime} ms. Hasil:`);
-    if (searchResults.length > 0) {
-      searchResults.forEach((r, idx) => {
-        console.log(`   ${idx + 1}. [${Math.round((r.similarityScore || 0) * 100)}%] ${r.title}`);
-      });
-    } else {
-      console.log("   Tidak ada hasil relevan.");
-    }
 
     console.log("\n✨ Seeding database selesai dengan sukses!");
     console.log("==========================================");

@@ -18,6 +18,7 @@ export interface TaskModalProps {
   categories: Category[];
   onSubmit: (payload: any) => Promise<void>;
   onAddCategory: (name: string, colorHex?: string) => Promise<Category>;
+  onDeleteCategory?: (id: string) => Promise<void>;
   onToggleSubtask?: (subtaskId: string, taskId: string) => Promise<void> | void;
   onAddSubtask?: (taskId: string, title: string) => Promise<any> | void;
   onDeleteSubtask?: (subtaskId: string, taskId: string) => Promise<void> | void;
@@ -37,6 +38,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   categories = [],
   onSubmit,
   onAddCategory,
+  onDeleteCategory,
   onToggleSubtask,
   onAddSubtask,
   onDeleteSubtask,
@@ -286,18 +288,43 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 + Kategori Baru
               </button>
             </div>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold"
-            >
-              <option value="">Tanpa Kategori</option>
-              {(categories || []).map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative flex items-center group">
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm pl-3.5 pr-14 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold appearance-none transition-all"
+              >
+                <option value="">Tanpa Kategori</option>
+                {(categories || []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              
+              {/* Native select arrow */}
+              <div className="absolute right-3.5 pointer-events-none text-slate-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+
+              {/* Delete (X) button when a category is selected */}
+              {categoryId && onDeleteCategory && (
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    if(confirm('Hapus kategori ini? Semua task dengan kategori ini akan menjadi "Tanpa Kategori".')) {
+                      await onDeleteCategory(categoryId);
+                      setCategoryId("");
+                    }
+                  }}
+                  className="absolute right-8 text-slate-400 hover:text-rose-500 hover:bg-slate-200/50 p-1 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                  title="Hapus Kategori"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Due Date */}

@@ -1,0 +1,1 @@
+CREATE INDEX "task_due_date_idx" ON "tasks" USING btree ("due_date");

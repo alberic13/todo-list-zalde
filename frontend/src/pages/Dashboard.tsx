@@ -32,6 +32,7 @@ export const Dashboard: React.FC = () => {
     toggleSubtask,
     deleteSubtask,
     createCategory,
+    deleteCategory,
   } = useTasks();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -161,6 +162,7 @@ export const Dashboard: React.FC = () => {
         categories={categories}
         onSubmit={handleModalSubmit}
         onAddCategory={createCategory}
+        onDeleteCategory={deleteCategory}
         onToggleSubtask={toggleSubtask}
         onAddSubtask={addSubtask}
         onDeleteSubtask={deleteSubtask}

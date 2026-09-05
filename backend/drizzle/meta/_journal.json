@@ -8,6 +8,13 @@
       "when": 1788583933444,
       "tag": "0000_common_madripoor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788587234895,
+      "tag": "0001_opposite_iron_patriot",
+      "breakpoints": true
     }
   ]
 }

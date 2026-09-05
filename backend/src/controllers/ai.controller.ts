@@ -3,7 +3,39 @@ import { RagService } from "../services/rag.service";
 import { authPlugin } from "../middlewares/auth.middleware";
 import { successResponse, errorResponse } from "../utils/response";
 
+// Custom in-memory rate limiter untuk melindungi API Gemini
+const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+const MAX_REQUESTS = 30; // 30 request
+const WINDOW_MS = 3600000; // per jam
+
+const aiRateLimiter = new Elysia({ name: "aiRateLimiter" }).onBeforeHandle(({ request, set }) => {
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const now = Date.now();
+  
+  let record = rateLimitMap.get(ip);
+  if (!record || now - record.lastReset > WINDOW_MS) {
+    record = { count: 1, lastReset: now };
+  } else {
+    record.count++;
+  }
+  rateLimitMap.set(ip, record);
+
+  if (record.count > MAX_REQUESTS) {
+    set.status = 429;
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: "Limit AI tercapai (Maksimal 30 interaksi per jam). Silakan coba lagi nanti untuk mencegah over-billing.",
+        data: null,
+        errors: { code: "RATE_LIMIT_EXCEEDED" },
+      }),
+      { headers: { "Content-Type": "application/json" } }
+    );
+  }
+});
+
 export const aiController = new Elysia({ prefix: "/api/ai" })
+  .use(aiRateLimiter)
   .use(authPlugin)
   // POST /api/ai/search (Semantic Vector Search)
   .post(

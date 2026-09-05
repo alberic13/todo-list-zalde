@@ -50,30 +50,23 @@ export class EmbeddingService {
       // 3. Generate embedding vector (768 dimensions)
       const embeddingVector = await GeminiClient.generateEmbedding(contentChunk);
 
-      // 4. Check if embedding row already exists
-      const existing = await db
-        .select({ id: taskEmbeddings.id })
-        .from(taskEmbeddings)
-        .where(eq(taskEmbeddings.taskId, taskId))
-        .limit(1);
-
-      if (existing.length > 0) {
-        await db
-          .update(taskEmbeddings)
-          .set({
-            embedding: embeddingVector,
-            contentChunk,
-            updatedAt: new Date(),
-          })
-          .where(eq(taskEmbeddings.taskId, taskId));
-      } else {
-        await db.insert(taskEmbeddings).values({
+      // 4. Upsert embedding (insert or update on conflict)
+      await db
+        .insert(taskEmbeddings)
+        .values({
           taskId,
           userId,
           embedding: embeddingVector,
           contentChunk,
+        })
+        .onConflictDoUpdate({
+          target: taskEmbeddings.taskId,
+          set: {
+            embedding: embeddingVector,
+            contentChunk,
+            updatedAt: new Date(),
+          },
         });
-      }
     } catch (err) {
       console.error(`[EmbeddingService] Failed to sync embedding for task ${taskId}:`, err);
     }
