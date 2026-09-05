@@ -18,7 +18,7 @@ export async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem("auth_token");
+  const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

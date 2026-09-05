@@ -9,10 +9,10 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: (credential: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<RegisterResponse>;
-  setAuthSession: (authData: AuthResponse) => void;
+  login: (email: string, password: string, remember?: boolean) => Promise<void>;
+  loginWithGoogle: (credential: string, remember?: boolean) => Promise<void>;
+  register: (name: string, email: string, password: string, remember?: boolean) => Promise<RegisterResponse>;
+  setAuthSession: (authData: AuthResponse, remember?: boolean) => void;
   updateProfile: (data: { name?: string; phoneNumber?: string }) => Promise<User>;
   logout: () => void;
 }
@@ -21,12 +21,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem("auth_token"));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token"));
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const saveToken = (newToken: string, remember: boolean) => {
+    if (remember) {
+      localStorage.setItem("auth_token", newToken);
+      sessionStorage.removeItem("auth_token");
+    } else {
+      sessionStorage.setItem("auth_token", newToken);
+      localStorage.removeItem("auth_token");
+    }
+  };
 
   useEffect(() => {
     async function loadUser() {
-      const storedToken = localStorage.getItem("auth_token");
+      const storedToken = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
       if (!storedToken) {
         setIsLoading(false);
         return;
@@ -38,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (err) {
         console.error("Session expired or invalid token:", err);
         localStorage.removeItem("auth_token");
+        sessionStorage.removeItem("auth_token");
         setToken(null);
         setUser(null);
       } finally {
@@ -48,32 +59,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadUser();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, remember: boolean = false) => {
     const res = await authService.login(email, password);
-    localStorage.setItem("auth_token", res.token);
+    saveToken(res.token, remember);
     setToken(res.token);
     setUser(res.user);
   };
 
-  const loginWithGoogle = async (credential: string) => {
+  const loginWithGoogle = async (credential: string, remember: boolean = false) => {
     const res = await authService.loginWithGoogle(credential);
-    localStorage.setItem("auth_token", res.token);
+    saveToken(res.token, remember);
     setToken(res.token);
     setUser(res.user);
   };
 
-  const register = async (name: string, email: string, password: string): Promise<RegisterResponse> => {
+  const register = async (name: string, email: string, password: string, remember: boolean = false): Promise<RegisterResponse> => {
     const res = await authService.register(name, email, password);
     if (res.token) {
-      localStorage.setItem("auth_token", res.token);
+      saveToken(res.token, remember);
       setToken(res.token);
       setUser(res.user);
     }
     return res;
   };
 
-  const setAuthSession = (authData: AuthResponse) => {
-    localStorage.setItem("auth_token", authData.token);
+  const setAuthSession = (authData: AuthResponse, remember: boolean = false) => {
+    saveToken(authData.token, remember);
     setToken(authData.token);
     setUser(authData.user);
   };
@@ -91,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Ignored
     }
     localStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_token");
     setToken(null);
     setUser(null);
   };

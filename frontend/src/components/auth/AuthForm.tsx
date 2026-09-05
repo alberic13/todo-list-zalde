@@ -23,6 +23,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState("");
   const [verifyDevCode, setVerifyDevCode] = useState<string | undefined>(undefined);
+  const [rememberMe, setRememberMe] = useState(false);
   const [resetTokenFromUrl, setResetTokenFromUrl] = useState("");
 
   // Detect ?reset_token= parameter from email 1-click link
@@ -49,14 +50,14 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
     try {
       if (isRegister) {
         if (!name.trim()) throw new Error("Nama lengkap wajib diisi");
-        const res = await register(name.trim(), email.trim(), password);
+        const res = await register(name.trim(), email.trim(), password, rememberMe);
         if (res.needVerification) {
           setVerifyEmail(email.trim());
           setVerifyDevCode(res.devCode);
           setShowVerifyModal(true);
         }
       } else {
-        await login(email.trim(), password);
+        await login(email.trim(), password, rememberMe);
       }
     } catch (err: any) {
       // Jika login ditolak karena akun belum diverifikasi
@@ -209,7 +210,12 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
             {/* Utilities: Remember & Forgot */}
             <div className="flex items-center justify-between text-xs pt-1">
               <label className="flex items-center select-none text-slate-600 cursor-pointer">
-                <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
                 <span className="ml-2 font-medium">Ingat saya</span>
               </label>
               <button
@@ -252,7 +258,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
                   setIsLoading(true);
                   setError(null);
                   if (credentialResponse.credential) {
-                    await loginWithGoogle(credentialResponse.credential);
+                    await loginWithGoogle(credentialResponse.credential, rememberMe);
                   }
                 } catch (err: any) {
                   setError(err.message || "Gagal login dengan Google");
@@ -306,7 +312,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
         email={verifyEmail}
         initialDevCode={verifyDevCode}
         onSuccess={(authData) => {
-          setAuthSession(authData);
+          setAuthSession(authData, rememberMe);
           setShowVerifyModal(false);
         }}
       />
