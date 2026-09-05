@@ -63,12 +63,13 @@ todo-list-zalde/
 │   ├── src/
 │   │   ├── components/         # UI Elements (Modal with Portal), Layout (Navbar & SettingsModal), Tasks, AI Drawer
 │   │   │   ├── ai/             # AiChatDrawer (WhatsApp 1-Click share & contextual copilot)
+│   │   │   ├── auth/           # AuthHero & AuthForm (Refactored Clean Code login components)
 │   │   │   ├── layout/         # Navbar (Mac-style gear trigger), SettingsModal (WhatsApp phone setup)
 │   │   │   ├── stats/          # StatOverview & progress cards
 │   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar
-│   │   │   └── ui/             # Button, Input, Badge, Modal (React Portal), Skeleton
+│   │   │   └── ui/             # Button, Input, Badge, Modal, Skeleton, BrandDots
 │   │   ├── hooks/              # useAuth (with profile & phone state), useTasks custom state hooks
-│   │   ├── pages/              # Dashboard (Kanban workspace) & AuthPage (Login/Register)
+│   │   ├── pages/              # Dashboard (Kanban workspace) & AuthPage (Wrapper layout)
 │   │   ├── services/           # Axios/Fetch API client & error handling
 │   │   ├── types/              # TypeScript definitions & data contracts
 │   │   └── utils/              # Date formatters & styling helpers
