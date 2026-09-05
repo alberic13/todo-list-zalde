@@ -6,31 +6,12 @@ import {
   boolean,
   integer,
   timestamp,
-  customType,
   index,
+  vector,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-// Universal 768-dimension vector storage compatible with all PostgreSQL environments
-export const vector768 = customType<{ data: number[]; driverData: string }>({
-  dataType() {
-    return "jsonb";
-  },
-  toDriver(value: number[]): string {
-    return JSON.stringify(value);
-  },
-  fromDriver(value: unknown): number[] {
-    if (typeof value === "string") {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return [];
-      }
-    }
-    if (Array.isArray(value)) return value;
-    return [];
-  },
-});
+
 
 // Users table
 export const users = pgTable("users", {
@@ -116,13 +97,14 @@ export const taskEmbeddings = pgTable(
     userId: uuid("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    embedding: vector768("embedding").notNull(),
+    embedding: vector("embedding", { dimensions: 768 }).notNull(),
     contentChunk: text("content_chunk").notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index("task_embeddings_user_idx").on(table.userId),
     index("task_embeddings_task_idx").on(table.taskId),
+    index("task_embeddings_embedding_idx").using("hnsw", table.embedding.op("vector_cosine_ops")),
   ]
 );
 

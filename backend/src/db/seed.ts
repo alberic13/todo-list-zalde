@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db, sql } from "../config/db";
 import { users, categories, tasks, subtasks } from "../models/schema";
 import { EmbeddingService } from "../services/embedding.service";
+import { RagService } from "../services/rag.service";
 
 async function seed() {
   console.log("🌱 Memulai proses seeding database...");
@@ -205,6 +206,23 @@ async function seed() {
     }
 
     console.log(`✅ ${taskData.length} Task beserta subtask & vector embeddings berhasil dibuat.`);
+    
+    console.log("\n🧪 MENGUJI COBA AI SEMANTIC SEARCH (pgvector + HNSW)...");
+    console.log("Query: 'kendaraan' (tidak ada kata ini di judul task manapun)");
+    
+    const searchStart = performance.now();
+    const searchResults = await RagService.semanticSearch(userId, "kendaraan", 3);
+    const searchTime = (performance.now() - searchStart).toFixed(2);
+    
+    console.log(`⏱️ Selesai dalam ${searchTime} ms. Hasil:`);
+    if (searchResults.length > 0) {
+      searchResults.forEach((r, idx) => {
+        console.log(`   ${idx + 1}. [${Math.round((r.similarityScore || 0) * 100)}%] ${r.title}`);
+      });
+    } else {
+      console.log("   Tidak ada hasil relevan.");
+    }
+
     console.log("\n✨ Seeding database selesai dengan sukses!");
     console.log("==========================================");
     console.log(`👤 Akun Demo: ${demoEmail}`);

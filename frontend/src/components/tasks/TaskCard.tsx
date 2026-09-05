@@ -21,7 +21,7 @@ export interface TaskCardProps {
   isDragging?: boolean;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({
+export const TaskCard: React.FC<TaskCardProps> = React.memo(({
   task,
   onEdit,
   onDelete,
@@ -278,4 +278,4 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       </div>
     </div>
   );
-};
+});

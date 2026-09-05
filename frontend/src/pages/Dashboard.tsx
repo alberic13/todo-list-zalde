@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, Suspense, lazy } from "react";
 import { useTasks } from "../hooks/useTasks";
 import { Navbar } from "../components/layout/Navbar";
 import { StatOverview } from "../components/stats/StatOverview";
@@ -6,7 +6,8 @@ import { FilterBar } from "../components/tasks/FilterBar";
 import { KanbanBoard } from "../components/tasks/KanbanBoard";
 import { TaskModal } from "../components/tasks/TaskModal";
 import { SettingsModal } from "../components/layout/SettingsModal";
-import { AiChatDrawer } from "../components/ai/AiChatDrawer";
+
+const AiChatDrawer = lazy(() => import("../components/ai/AiChatDrawer").then(m => ({ default: m.AiChatDrawer })));
 import { Skeleton } from "../components/ui/Skeleton";
 import { Task, TaskStatus } from "../types";
 import { Bot, AlertCircle, RefreshCw } from "lucide-react";
@@ -39,16 +40,16 @@ export const Dashboard: React.FC = () => {
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const handleOpenCreateTaskWithStatus = (status: TaskStatus) => {
+  const handleOpenCreateTaskWithStatus = useCallback((status: TaskStatus) => {
     setTaskToEdit(null);
     setDefaultModalStatus(status);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = useCallback((task: Task) => {
     setTaskToEdit(task);
     setIsModalOpen(true);
-  };
+  }, []);
 
   const handleModalSubmit = async (payload: any) => {
     if (taskToEdit) {
@@ -190,11 +191,13 @@ export const Dashboard: React.FC = () => {
       )}
 
       {/* Floating AI Drawer */}
-      <AiChatDrawer
-        isOpen={isAiDrawerOpen}
-        onClose={() => setIsAiDrawerOpen(false)}
-        onOpenTaskModal={handleEditTask}
-      />
+      <Suspense fallback={null}>
+        <AiChatDrawer
+          isOpen={isAiDrawerOpen}
+          onClose={() => setIsAiDrawerOpen(false)}
+          onOpenTaskModal={handleEditTask}
+        />
+      </Suspense>
     </div>
   );
 };

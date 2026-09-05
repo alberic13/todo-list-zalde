@@ -1,56 +1,35 @@
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import { db } from "../config/db";
 import { tasks, taskEmbeddings } from "../models/schema";
 import { GeminiClient } from "../config/ai";
 
 export class RagService {
   /**
-   * Fast Cosine Similarity calculation
-   */
-  private static cosineSimilarity(vecA: number[], vecB: number[]): number {
-    if (!vecA || !vecB || vecA.length === 0 || vecB.length === 0) return 0;
-    const len = Math.min(vecA.length, vecB.length);
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-    for (let i = 0; i < len; i++) {
-      dotProduct += vecA[i] * vecB[i];
-      normA += vecA[i] * vecA[i];
-      normB += vecB[i] * vecB[i];
-    }
-    if (normA === 0 || normB === 0) return 0;
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-  }
-
-  /**
-   * Fast vector semantic search
+   * Fast vector semantic search directly in PostgreSQL (pgvector HNSW)
    */
   static async semanticSearch(userId: string, query: string, topK = 10) {
     if (!query.trim()) return [];
 
-    // Parallel: generate query embedding & fetch stored user embeddings concurrently
-    const [queryVector, userEmbeddings] = await Promise.all([
-      GeminiClient.generateEmbedding(query),
-      db
-        .select({
-          taskId: taskEmbeddings.taskId,
-          embedding: taskEmbeddings.embedding,
-        })
-        .from(taskEmbeddings)
-        .where(eq(taskEmbeddings.userId, userId)),
-    ]);
+    // 1. Generate query embedding
+    const queryVector = await GeminiClient.generateEmbedding(query);
 
-    if (userEmbeddings.length === 0) return [];
+    // 2. Query Postgres natively for cosine similarity (1 - cosine_distance)
+    const similarity = sql<number>`1 - (${taskEmbeddings.embedding} <=> ${JSON.stringify(queryVector)}::vector)`;
 
-    // Score in-memory
-    const scoredTasks = userEmbeddings
-      .map((item) => ({
-        taskId: item.taskId,
-        similarity: Math.round(this.cosineSimilarity(queryVector, item.embedding) * 100) / 100,
-      }))
-      .filter((item) => item.similarity > 0.25)
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, topK);
+    const scoredTasks = await db
+      .select({
+        taskId: taskEmbeddings.taskId,
+        similarity: similarity,
+      })
+      .from(taskEmbeddings)
+      .where(
+        and(
+          eq(taskEmbeddings.userId, userId),
+          sql`1 - (${taskEmbeddings.embedding} <=> ${JSON.stringify(queryVector)}::vector) > 0.25`
+        )
+      )
+      .orderBy(desc(similarity))
+      .limit(topK);
 
     if (scoredTasks.length === 0) return [];
 

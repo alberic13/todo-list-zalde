@@ -12,7 +12,7 @@ export interface KanbanBoardProps {
   onOpenCreateTaskWithStatus: (status: "todo" | "in_progress" | "done") => void;
 }
 
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({
+export const KanbanBoard: React.FC<KanbanBoardProps> = React.memo(({
   tasks,
   onEdit,
   onDelete,
@@ -162,4 +162,4 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       })}
     </div>
   );
-};
+});
