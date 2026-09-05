@@ -1,7 +1,10 @@
 import React from "react";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { AuthPage } from "./pages/AuthPage";
-import { Dashboard } from "./pages/Dashboard";
+
+const Dashboard = React.lazy(() => 
+  import("./pages/Dashboard").then(module => ({ default: module.Dashboard }))
+);
 import { Loader2, CheckSquare } from "lucide-react";
 
 const AppContent: React.FC = () => {
@@ -21,7 +24,18 @@ const AppContent: React.FC = () => {
     );
   }
 
-  return isAuthenticated ? <Dashboard /> : <AuthPage />;
+  return isAuthenticated ? (
+    <React.Suspense fallback={
+      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4">
+        <div className="flex items-center gap-2 text-slate-400 text-xs">
+          <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+          <span>Memuat workspace...</span>
+        </div>
+      </div>
+    }>
+      <Dashboard />
+    </React.Suspense>
+  ) : <AuthPage />;
 };
 
 export function App() {

@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { RagService } from "../services/rag.service";
-import { authPlugin } from "../middlewares/auth.middleware";
+import { requireAuth } from "../middlewares/auth.middleware";
 import { successResponse, errorResponse } from "../utils/response";
 import { env } from "../config/env";
 import { Redis } from "@upstash/redis";
@@ -63,15 +63,11 @@ const aiRateLimiter = new Elysia({ name: "aiRateLimiter" }).onBeforeHandle(async
 
 export const aiController = new Elysia({ prefix: "/api/ai" })
   .use(aiRateLimiter)
-  .use(authPlugin)
+  .use(requireAuth)
   // POST /api/ai/search (Semantic Vector Search)
   .post(
     "/search",
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
 
       try {
         const results = await RagService.semanticSearch(user.id, body.query, body.topK || 10);
@@ -96,10 +92,6 @@ export const aiController = new Elysia({ prefix: "/api/ai" })
   .post(
     "/chat",
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
 
       try {
         const result = await RagService.chatWithRag(user.id, body.message, user.name);
@@ -123,10 +115,6 @@ export const aiController = new Elysia({ prefix: "/api/ai" })
   .post(
     "/breakdown",
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
 
       try {
         const subtasks = await RagService.breakdownTask(body.title, body.description);

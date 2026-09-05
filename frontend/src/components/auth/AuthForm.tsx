@@ -44,12 +44,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
 
   return (
     <section 
-      className={`absolute top-0 right-0 h-full w-full lg:w-[55%] xl:w-[54%] flex flex-col justify-between px-6 py-4 sm:px-10 sm:py-6 lg:px-14 lg:py-8 overflow-y-auto bg-gradient-to-b from-[#F8FAFC] to-[#EFF2F6] z-30 shadow-[-30px_0_60px_rgba(0,0,0,0.15)] transition-transform duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+      className={`absolute top-0 right-0 h-full w-full lg:w-[55%] xl:w-[54%] flex flex-col justify-between px-6 py-4 sm:px-10 sm:py-6 lg:px-14 lg:py-8 overflow-y-auto bg-[radial-gradient(circle_at_85%_15%,rgba(226,214,238,0.65)_0%,rgba(241,244,250,0.92)_45%,rgba(220,226,236,0.85)_100%),linear-gradient(135deg,rgb(245,243,248)_0%,rgb(234,239,246)_100%)] z-30 shadow-[-30px_0_60px_rgba(0,0,0,0.15)] transition-transform duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
         showForm ? "translate-x-0" : "translate-x-full"
       }`}
-      style={{
-        background: "radial-gradient(circle at 85% 15%, rgba(226, 214, 238, 0.65) 0%, rgba(241, 244, 250, 0.92) 45%, rgba(220, 226, 236, 0.85) 100%), linear-gradient(135deg, rgb(245, 243, 248) 0%, rgb(234, 239, 246) 100%)"
-      }}
     >
       {/* Top Return Bar */}
       <nav aria-label="Navigasi Autentikasi" className="flex items-center justify-between w-full max-w-md mx-auto">
@@ -72,13 +69,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
 
         {/* Auth Card */}
         <div 
-          className="bg-white rounded-3xl p-5 sm:px-8 sm:py-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] border border-slate-200/80 shadow-2xl" 
-          style={{
-            background: "rgba(255, 255, 255, 0.94)",
-            backdropFilter: "blur(24px)",
-            border: "1px solid rgba(255, 255, 255, 0.9)",
-            boxShadow: "rgba(15, 23, 42, 0.15) 0px 25px 50px -12px, rgba(99, 102, 241, 0.08) 0px 12px 24px -8px, rgba(226, 232, 240, 0.8) 0px 0px 0px 1px"
-          }}
+          className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 sm:px-8 sm:py-6 border border-white/90 shadow-[0_25px_50px_-12px_rgba(15,23,42,0.15),0_12px_24px_-8px_rgba(99,102,241,0.08),0_0_0_1px_rgba(226,232,240,0.8)]" 
         >
           {/* Tab Segment Switcher */}
           <div aria-label="Mode Masuk" className="p-1 bg-slate-100/90 rounded-2xl flex items-center mb-4 border border-slate-200/50" role="tablist">

@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { jwt } from "@elysiajs/jwt";
 import { env } from "../config/env";
+import { errorResponse } from "../utils/response";
 
 export interface AuthUserPayload {
   id: string;
@@ -37,3 +38,13 @@ export const authPlugin = new Elysia({ name: "authPlugin" })
       } as AuthUserPayload,
     };
   });
+
+export const requireAuth = new Elysia({ name: "requireAuth" })
+  .use(authPlugin)
+  .onBeforeHandle(({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
+    }
+  })
+  .resolve({ as: "scoped" }, ({ user }) => ({ user: user as AuthUserPayload }));

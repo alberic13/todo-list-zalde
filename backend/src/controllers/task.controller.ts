@@ -1,18 +1,14 @@
 import { Elysia, t } from "elysia";
 import { TaskService } from "../services/task.service";
-import { authPlugin } from "../middlewares/auth.middleware";
+import { requireAuth } from "../middlewares/auth.middleware";
 import { successResponse, errorResponse } from "../utils/response";
 
 export const taskController = new Elysia({ prefix: "/api" })
-  .use(authPlugin)
+  .use(requireAuth)
   // GET /api/tasks
   .get(
     "/tasks",
     async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       const tasks = await TaskService.list(user.id, {
         status: query.status,
         priority: query.priority,
@@ -42,10 +38,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .get(
     "/tasks/stats",
     async ({ user, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       const stats = await TaskService.getStats(user.id);
       return successResponse(stats, "Task statistics retrieved");
     },
@@ -60,10 +52,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .get(
     "/tasks/:id",
     async ({ user, params, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       const task = await TaskService.getById(params.id, user.id);
       if (!task) {
         set.status = 404;
@@ -85,10 +73,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .post(
     "/tasks",
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       try {
         const task = await TaskService.create(user.id, {
           title: body.title,
@@ -128,10 +112,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .put(
     "/tasks/:id",
     async ({ user, params, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       const updated = await TaskService.update(params.id, user.id, {
         title: body.title,
         description: body.description !== undefined ? (body.description ?? undefined) : undefined,
@@ -171,10 +151,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .patch(
     "/tasks/:id/status",
     async ({ user, params, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       const updated = await TaskService.updateStatus(params.id, user.id, body.status);
       if (!updated) {
         set.status = 404;
@@ -199,10 +175,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .delete(
     "/tasks/:id",
     async ({ user, params, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       const deleted = await TaskService.delete(params.id, user.id);
       if (!deleted) {
         set.status = 404;
@@ -224,10 +196,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .post(
     "/tasks/:id/subtasks",
     async ({ user, params, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       try {
         const subtask = await TaskService.addSubtask(params.id, user.id, body.title);
         set.status = 201;
@@ -254,10 +222,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .patch(
     "/subtasks/:id/toggle",
     async ({ user, params, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       try {
         const subtask = await TaskService.toggleSubtask(params.id, user.id);
         return successResponse(subtask, "Subtask status toggled");
@@ -280,10 +244,6 @@ export const taskController = new Elysia({ prefix: "/api" })
   .delete(
     "/subtasks/:id",
     async ({ user, params, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       try {
         const deleted = await TaskService.deleteSubtask(params.id, user.id);
         return successResponse(deleted, "Subtask deleted");

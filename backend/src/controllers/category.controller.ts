@@ -1,18 +1,14 @@
 import { Elysia, t } from "elysia";
 import { CategoryService } from "../services/category.service";
-import { authPlugin } from "../middlewares/auth.middleware";
+import { requireAuth } from "../middlewares/auth.middleware";
 import { successResponse, errorResponse } from "../utils/response";
 
 export const categoryController = new Elysia({ prefix: "/api/categories" })
-  .use(authPlugin)
+  .use(requireAuth)
   // GET /api/categories
   .get(
     "/",
     async ({ user, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       const categories = await CategoryService.listByUser(user.id);
       return successResponse(categories, "Categories retrieved");
     },
@@ -27,10 +23,6 @@ export const categoryController = new Elysia({ prefix: "/api/categories" })
   .post(
     "/",
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       try {
         const category = await CategoryService.create(user.id, body.name, body.colorHex);
         set.status = 201;
@@ -55,10 +47,6 @@ export const categoryController = new Elysia({ prefix: "/api/categories" })
   .delete(
     "/:id",
     async ({ user, params, set }) => {
-      if (!user) {
-        set.status = 401;
-        return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
-      }
       const deleted = await CategoryService.delete(params.id, user.id);
       if (!deleted) {
         set.status = 404;
