@@ -9,6 +9,8 @@ Aplikasi manajemen tugas modern berbasis **AI & RAG (Retrieval-Augmented Generat
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4.0-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com)
 [![PostgreSQL](https://img.shields.io/badge/Neon-PostgreSQL%20(pgvector)-00E599.svg?logo=postgresql)](https://neon.tech)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash%20%2B%20Embeddings-8E75B2.svg?logo=google-gemini)](https://ai.google.dev)
+[![iCalendar](https://img.shields.io/badge/iCalendar-RFC%205545%20(Webcal)-FF6B6B.svg?logo=google-calendar&logoColor=white)](https://tools.ietf.org/html/rfc5545)
+[![Google Calendar](https://img.shields.io/badge/Google%20Calendar-Auto%20Sync-4285F4.svg?logo=google-calendar&logoColor=white)](https://calendar.google.com/)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy-Vercel-000000.svg?logo=vercel)](https://todo-list-zalde.vercel.app/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -49,11 +51,11 @@ todo-list-zalde/
 ├── backend/                    # Bun + Elysia.js + Drizzle ORM + pgvector
 │   ├── src/
 │   │   ├── config/             # DB (Neon), AI (Gemini client), & Env config
-│   │   ├── controllers/        # Auth (Profile & Phone), Task, Category, AI endpoints
+│   │   ├── controllers/        # Auth, Task, Category, AI, & Calendar endpoints
 │   │   ├── db/                 # Database Seeder (seed.ts: demo user, tasks, subtasks & embeddings)
 │   │   ├── middlewares/        # Scoped JWT Auth & Centralized Error handlers
 │   │   ├── models/             # Drizzle PostgreSQL schemas (users, tasks, categories, embeddings)
-│   │   ├── services/           # Auth, Task, Category, Embedding, & RAG logic
+│   │   ├── services/           # Auth, Task, Category, Calendar (iCal RFC 5545), Embedding, & RAG
 │   │   ├── utils/              # Standardized response formatters (ApiResponse)
 │   │   └── index.ts            # Elysia Server & Swagger API entry point
 │   ├── test/                   # Bun unit & E2E integration test suites (auth, e2e, rag)
@@ -65,15 +67,15 @@ todo-list-zalde/
 │   ├── public/                 # Static assets & icons
 │   ├── src/
 │   │   ├── components/         # UI Elements, Layout, Tasks Kanban, AI Drawer
-│   │   │   ├── ai/             # AiChatDrawer (WhatsApp 1-Click share & contextual copilot)
-│   │   │   ├── auth/           # AuthHero & AuthForm (Login & Register components)
-│   │   │   ├── layout/         # Navbar (Settings trigger), SettingsModal (WhatsApp phone setup)
+│   │   │   ├── ai/             # AiChatDrawer (WhatsApp share & contextual copilot)
+│   │   │   ├── auth/           # AuthHero & AuthForm (Login, Register, OTP & Reset)
+│   │   │   ├── layout/         # Navbar, SettingsModal (WhatsApp & iCal Calendar sync)
 │   │   │   ├── stats/          # StatOverview & progress cards
 │   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar
 │   │   │   └── ui/             # Button, Input, Badge, Modal, Skeleton, BrandDots
-│   │   ├── hooks/              # useAuth (with profile & phone state), useTasks custom state hooks
+│   │   ├── hooks/              # useAuth (remember me session), useTasks custom state hooks
 │   │   ├── pages/              # Dashboard (Lazy-loaded Kanban) & AuthPage (Authentication)
-│   │   ├── services/           # API client handlers (ai, auth, category, task)
+│   │   ├── services/           # API client handlers (ai, auth, category, task, calendar)
 │   │   ├── types/              # TypeScript definitions & data contracts
 │   │   ├── utils/              # Date formatters & styling helpers
 │   │   ├── App.tsx             # Main App router & auth state wrapper
@@ -100,15 +102,22 @@ todo-list-zalde/
    - Floating Copilot drawer cerdas yang memahami konteks seluruh tugas tersimpan via semantic vector search.
    - **Semantic Search Engine**: Pencarian tugas berdasarkan makna bahasa alami.
    - **AI Task Decomposition (Breakdown)**: Memecah tugas besar menjadi subtasks otomatis dalam 1 klik.
-3. **📲 Integrasi WhatsApp Jadwal Prioritas**:
+3. **📅 Sinkronisasi Kalender Otomatis (iCal / Webcal & Google Calendar)**:
+   - **Live Webcal Subscription Feed (RFC 5545)**: Sinkronisasi jadwal otomatis 2 arah ke Google Calendar, Apple Calendar (iOS/macOS), dan Microsoft Outlook via URL unik terenkripsi per pengguna.
+   - **Auto-Filter Tugas Aktif**: Tugas ber-deadline yang aktif (*Todo*, *In Progress*) otomatis masuk kalender, dan otomatis terhapus dari kalender begitu ditandai selesai (*Done*).
+   - **Checklist & Prioritas Lengkap**: Rincian subtask dan level urgensi terlampir rapi di deskripsi acara kalender.
+   - **1-Click Google Calendar Action**: Tombol pintas pada modal dan dropdown menu kartu tugas untuk menambahkan tugas spesifik ke Google Calendar tanpa copy-paste.
+   - **Keamanan Token Feed**: Opsi *Reset URL* (regenerate token) kapan saja dari tab Pengaturan untuk mencabut akses link kalender lama.
+4. **📲 Integrasi WhatsApp Jadwal Prioritas**:
    - **Pengaturan Nomor Akun**: Simpan nomor WhatsApp pengguna langsung ke database PostgreSQL (`users.phone_number`).
    - **1-Click WhatsApp Delivery**: Zalde AI merangkum jadwal prioritas harian dan menyediakan tombol direct chat WhatsApp terformat rapi.
    - **UI/UX macOS Theme**: Trigger icon gear minimalis di navbar dengan pop-up React Portal terpusat.
-4. **🔒 Keamanan & Performa End-to-End**:
-   - Autentikasi JWT dengan password hashing Argon2id.
-   - Validasi schema input TypeBox & proteksi SQL Injection via Drizzle ORM.
+5. **🔒 Keamanan, Verifikasi OTP & Manajemen Sesi**:
+   - **Verifikasi Email OTP**: Pengiriman kode verifikasi 6-digit aman saat pendaftaran akun via Nodemailer.
+   - **1-Click Password Reset**: Alur pemulihan kata sandi dengan token terenkripsi dan batas waktu kadaluwarsa.
+   - **Kontrol Sesi "Ingat Saya"**: Penyimpanan fleksibel (*LocalStorage* untuk sesi persisten vs *SessionStorage* untuk privasi perangkat umum).
    - **Upstash Redis Rate Limiter**: Proteksi endpoint AI serverless-ready untuk mencegah eksploitasi dan pembengkakan tagihan API.
-5. **🚀 Optimasi Performa & Clean Code (Terbaru)**:
+6. **🚀 Optimasi Performa & Clean Code**:
    - **Frontend (Code Splitting)**: Implementasi `React.lazy()` & `Suspense` memecah *bundle* halaman `Dashboard`. Halaman Auth kini memuat lebih instan.
    - **Backend (DRY Auth Guard)**: Sentralisasi *middleware* `requireAuth` di Elysia.js menghapus redundansi cek otorisasi pada 15+ endpoint, menghasilkan kode yang jauh lebih ringkas dan *type-safe*.
 
