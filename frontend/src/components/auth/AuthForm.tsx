@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { GoogleLogin } from "@react-oauth/google";
 import { AlertCircle, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, User, ArrowRight } from "lucide-react";
+import { ForgotPasswordModal } from "./ForgotPasswordModal";
 
 interface AuthFormProps {
   showForm: boolean;
@@ -17,6 +18,19 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [resetTokenFromUrl, setResetTokenFromUrl] = useState("");
+
+  // Detect ?reset_token= parameter from email 1-click link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("reset_token") || params.get("token");
+    if (token) {
+      setResetTokenFromUrl(token);
+      setShowForgotModal(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleTabChange = (isReg: boolean) => {
     setIsRegister(isReg);
@@ -179,7 +193,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
                 <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                 <span className="ml-2 font-medium">Ingat saya</span>
               </label>
-              <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-800 transition">Lupa kata sandi?</a>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(true)}
+                className="font-semibold text-indigo-600 hover:text-indigo-800 transition cursor-pointer"
+              >
+                Lupa kata sandi?
+              </button>
             </div>
 
             {/* Submit Button */}
@@ -246,6 +266,19 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
       <div className="text-center text-xs text-slate-400 lg:hidden pt-4">
         © 2026 Zalde Productivity Suite. Seluruh hak cipta dilindungi.
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        initialEmail={email}
+        initialToken={resetTokenFromUrl}
+        onSuccessLogin={(resetEmail) => {
+          setEmail(resetEmail);
+          setIsRegister(false);
+          setShowForgotModal(false);
+        }}
+      />
     </section>
   );
 };

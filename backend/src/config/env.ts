@@ -6,4 +6,8 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || "development",
   UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || "",
   UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || "",
+  GMAIL_USER: process.env.GMAIL_USER || "",
+  GMAIL_APP_PASSWORD: (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, ""),
+  EMAIL_FROM: process.env.EMAIL_FROM || "Zalde Todo AI <zaldealberic@gmail.com>",
+  FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
 };

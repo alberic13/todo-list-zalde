@@ -16,10 +16,12 @@
     "@elysiajs/cors": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
     "@elysiajs/swagger": "^1.2.0",
+    "@types/nodemailer": "^8.0.1",
     "@upstash/redis": "^1.38.4",
     "drizzle-orm": "^0.39.3",
     "elysia": "^1.2.10",
     "google-auth-library": "^11.0.2",
+    "nodemailer": "^10.0.0",
     "postgres": "^3.4.5"
   },
   "devDependencies": {

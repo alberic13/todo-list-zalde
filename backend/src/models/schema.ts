@@ -109,10 +109,30 @@ export const taskEmbeddings = pgTable(
   ]
 );
 
+// Password Reset Tokens table
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    token: varchar("token", { length: 255 }).notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    used: boolean("used").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("password_reset_user_idx").on(table.userId),
+    index("password_reset_token_idx").on(table.token),
+  ]
+);
+
 // Drizzle Relations
 export const usersRelations = relations(users, ({ many }) => ({
   tasks: many(tasks),
   categories: many(categories),
+  passwordResetTokens: many(passwordResetTokens),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
@@ -156,3 +176,11 @@ export const taskEmbeddingsRelations = relations(taskEmbeddings, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResetTokens.userId],
+    references: [users.id],
+  }),
+}));
+

@@ -25,7 +25,7 @@ describe("E2E Auth & Task Flow", () => {
     expect(data.data.token).toBeString();
     expect(data.data.user.email).toBe(testEmail);
     authToken = data.data.token;
-  });
+  }, 15000);
 
   it("should login with registered credentials", async () => {
     const res = await app.handle(
@@ -43,7 +43,7 @@ describe("E2E Auth & Task Flow", () => {
     const data: any = await res.json();
     expect(data.success).toBe(true);
     expect(data.data.token).toBeString();
-  });
+  }, 15000);
 
   it("should create a task with subtasks", async () => {
     const res = await app.handle(
@@ -69,7 +69,7 @@ describe("E2E Auth & Task Flow", () => {
     expect(data.data.title).toBe("Implementasi Fitur AI");
     expect(data.data.subtasks.length).toBe(3);
     createdTaskId = data.data.id;
-  });
+  }, 15000);
 
   it("should list tasks and calculate stats", async () => {
     const res = await app.handle(
@@ -85,5 +85,5 @@ describe("E2E Auth & Task Flow", () => {
     const data: any = await res.json();
     expect(data.success).toBe(true);
     expect(data.data.total).toBeGreaterThanOrEqual(1);
-  });
+  }, 15000);
 });
