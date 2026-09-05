@@ -242,6 +242,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
               shape="pill"
               text="continue_with"
               width="100%"
+              prompt="select_account"
             />
           </div>
           
