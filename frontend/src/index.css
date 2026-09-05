@@ -167,3 +167,29 @@
 .auth-pill-glow {
   animation: auth-pill-glow 3s ease-in-out infinite;
 }
+
+/* BEGIN: Custom Glass & Glow Styles */
+.glow-purple {
+  background: radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.18) 0%, rgba(79, 70, 229, 0.08) 45%, transparent 70%);
+}
+.glow-cyan {
+  background: radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.15) 0%, transparent 60%);
+}
+.glass-pill {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.glass-card {
+  background: rgba(18, 24, 40, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.text-gradient-accent {
+  background: linear-gradient(135deg, #F472B6 0%, #FBBF24 50%, #A78BFA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+/* END: Custom Glass & Glow Styles */

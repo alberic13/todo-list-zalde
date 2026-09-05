@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
-import { Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
-import { BrandDots } from "../ui/BrandDots";
+import { AlertCircle, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, User, ArrowRight } from "lucide-react";
 
 interface AuthFormProps {
   showForm: boolean;
@@ -18,6 +15,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleTabChange = (isReg: boolean) => {
     setIsRegister(isReg);
@@ -43,78 +41,64 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
     }
   };
 
-  const handleDemoFill = () => {
-    setName("Zalde Demo User");
-    setEmail("demo@zalde.com");
-    setPassword("Password123!");
-    setIsRegister(false);
-  };
-
   return (
-    <div 
-      className={`absolute top-0 right-0 h-full w-full lg:w-[55%] xl:w-[52%] flex items-center justify-center bg-white z-30 shadow-[-30px_0_60px_rgba(0,0,0,0.15)] transition-transform duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+    <section 
+      className={`absolute top-0 right-0 h-full w-full lg:w-[55%] xl:w-[54%] flex flex-col justify-between px-6 py-4 sm:px-10 sm:py-6 lg:px-14 lg:py-8 overflow-y-auto bg-gradient-to-b from-[#F8FAFC] to-[#EFF2F6] z-30 shadow-[-30px_0_60px_rgba(0,0,0,0.15)] transition-transform duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
         showForm ? "translate-x-0" : "translate-x-full"
       }`}
+      style={{
+        background: "radial-gradient(circle at 85% 15%, rgba(226, 214, 238, 0.65) 0%, rgba(241, 244, 250, 0.92) 45%, rgba(220, 226, 236, 0.85) 100%), linear-gradient(135deg, rgb(245, 243, 248) 0%, rgb(234, 239, 246) 100%)"
+      }}
     >
-      {/* Subtle background for right panel */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white to-slate-50/60" />
+      {/* Top Return Bar */}
+      <nav aria-label="Navigasi Autentikasi" className="flex items-center justify-between w-full max-w-md mx-auto">
+        <button 
+          onClick={onHideForm}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition group py-1"
+        >
+          <ArrowLeft className="w-4 h-4 text-slate-500 group-hover:-translate-x-1 transition-transform" />
+          Kembali
+        </button>
+        <div className="text-xs font-medium text-slate-500">
+          Butuh bantuan? <a className="text-indigo-600 hover:underline font-semibold" href="#">Hubungi Dukungan</a>
+        </div>
+      </nav>
 
-      {/* Back button */}
-      <button 
-        onClick={onHideForm}
-        className={`absolute top-6 left-6 lg:top-8 lg:left-8 inline-flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-all z-40 font-medium text-sm group duration-500 delay-300 ${showForm ? "opacity-100" : "opacity-0 -translate-x-4 pointer-events-none"}`}
-      >
-        <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
-        <span>Kembali</span>
-      </button>
-
-      <div className={`w-full max-w-[400px] relative z-10 p-6 sm:p-8 transition-all duration-[800ms] delay-100 ${showForm ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
+      {/* Center Auth Box Container */}
+      <div className="w-full max-w-[430px] mx-auto my-auto py-2">
         
-        {/* Mobile-only brand header */}
-        <div className="lg:hidden text-center mb-8">
-          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-slate-900/5 border border-slate-200/60 mb-3">
-            <BrandDots className="gap-1.5" />
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">
-            Todolist-App
-          </h1>
-          <p className="text-xs text-slate-400 font-medium mt-1">
-            Smart Productivity Suite
-          </p>
-        </div>
 
-        {/* Desktop greeting */}
-        <div className="hidden lg:block mb-8">
-          <p className="text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">
-            {isRegister ? "Mulai perjalananmu" : "Selamat datang kembali"}
-          </p>
-          <h1 className="text-[32px] font-black tracking-tight text-slate-900 leading-snug">
-            {isRegister ? "Buat akun baru" : "Masuk ke akun"}
-          </h1>
-        </div>
 
-        {/* Form Card */}
-        <div className="rounded-3xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 sm:p-8">
-
-          {/* Tab Switcher */}
-          <div className="flex p-1 rounded-xl bg-slate-100/70 border border-slate-200/50 mb-7">
-            {[
-              { id: "login", label: "Masuk", isReg: false },
-              { id: "register", label: "Daftar Baru", isReg: true },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => handleTabChange(tab.isReg)}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all duration-300 relative ${
-                  isRegister === tab.isReg
-                    ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-900/5"
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+        {/* Auth Card */}
+        <div 
+          className="bg-white rounded-3xl p-5 sm:px-8 sm:py-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] border border-slate-200/80 shadow-2xl" 
+          style={{
+            background: "rgba(255, 255, 255, 0.94)",
+            backdropFilter: "blur(24px)",
+            border: "1px solid rgba(255, 255, 255, 0.9)",
+            boxShadow: "rgba(15, 23, 42, 0.15) 0px 25px 50px -12px, rgba(99, 102, 241, 0.08) 0px 12px 24px -8px, rgba(226, 232, 240, 0.8) 0px 0px 0px 1px"
+          }}
+        >
+          {/* Tab Segment Switcher */}
+          <div aria-label="Mode Masuk" className="p-1 bg-slate-100/90 rounded-2xl flex items-center mb-4 border border-slate-200/50" role="tablist">
+            <button 
+              aria-selected={!isRegister} 
+              onClick={() => handleTabChange(false)}
+              className={`flex-1 py-2 rounded-xl text-xs transition-all ${!isRegister ? 'font-bold text-white bg-[#0F172A] shadow-md' : 'font-semibold text-slate-500 hover:text-slate-800'}`}
+              role="tab" 
+              type="button"
+            >
+              Masuk
+            </button>
+            <button 
+              aria-selected={isRegister} 
+              onClick={() => handleTabChange(true)}
+              className={`flex-1 py-2 rounded-xl text-xs transition-all ${isRegister ? 'font-bold text-white bg-[#0F172A] shadow-md' : 'font-semibold text-slate-500 hover:text-slate-800'}`}
+              role="tab" 
+              type="button"
+            >
+              Daftar Baru
+            </button>
           </div>
 
           {/* Error alert */}
@@ -125,79 +109,140 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Sign-In Form */}
+          <form onSubmit={handleSubmit} className="space-y-3">
+            
+            {/* Nama Input Field (Register Only) */}
             {isRegister && (
               <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                <Input
-                  label="Nama Lengkap"
-                  placeholder="Misal: Zalde Developer"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  leftIcon={<User className="w-4 h-4" />}
-                  required
-                />
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5" htmlFor="name">Nama Lengkap</label>
+                <div className="relative rounded-xl shadow-sm">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <input 
+                    id="name" 
+                    name="name" 
+                    type="text"
+                    required 
+                    placeholder="Input Nama Lengkap"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="block w-full rounded-xl border border-slate-200 pl-10 pr-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition duration-150 ease-in-out" 
+                  />
+                </div>
               </div>
             )}
 
-            <Input
-              label="Alamat Email"
-              type="email"
-              placeholder="nama@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail className="w-4 h-4" />}
-              required
-            />
+            {/* Email Input Field */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5" htmlFor="email">Alamat Email</label>
+              <div className="relative rounded-xl shadow-sm">
+                <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <input 
+                  id="email" 
+                  name="email" 
+                  type="email" 
+                  required
+                  placeholder="nama@email.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full rounded-xl border border-slate-200 pl-10 pr-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition duration-150 ease-in-out" 
+                />
+              </div>
+            </div>
 
-            <Input
-              label="Kata Sandi"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              leftIcon={<Lock className="w-4 h-4" />}
-              required
-            />
+            {/* Password Input Field */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700" htmlFor="password">Kata Sandi</label>
+              </div>
+              <div className="relative rounded-xl shadow-sm">
+                <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                  <Lock className="h-4 w-4" />
+                </div>
+                <input 
+                  id="password" 
+                  name="password" 
+                  type={showPassword ? "text" : "password"}
+                  required 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full rounded-xl border border-slate-200 pl-10 pr-10 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition duration-150 ease-in-out" 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  className={`absolute inset-y-0 right-0 pr-3.5 flex items-center focus:outline-none ${showPassword ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  title="Lihat password"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
 
-            <Button
-              type="submit"
-              className="w-full mt-2 rounded-xl py-3 text-sm font-bold tracking-wide shadow-lg shadow-slate-900/10 hover:shadow-xl hover:shadow-slate-900/15 transition-shadow duration-300"
-              size="lg"
-              isLoading={isLoading}
-              rightIcon={<ArrowRight className="w-4 h-4" />}
+            {/* Utilities: Remember & Forgot */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center select-none text-slate-600 cursor-pointer">
+                <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                <span className="ml-2 font-medium">Ingat saya</span>
+              </label>
+              <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-800 transition">Lupa kata sandi?</a>
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 active:scale-[0.99] text-white text-sm font-semibold tracking-wide shadow-lg shadow-slate-900/15 hover:shadow-slate-900/25 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isRegister ? "Buat Akun Sekarang" : "Masuk ke Workspace"}
-            </Button>
+              <span>{isLoading ? "Memproses..." : (isRegister ? "Buat Akun" : "Masuk ke Workspace")}</span>
+              {!isLoading && (
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              )}
+            </button>
           </form>
 
           {/* Divider */}
-          <div className="relative my-7">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-100" />
+          <div className="relative my-4">
+            <div aria-hidden="true" className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
             </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-3 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                atau
-              </span>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-3 text-slate-400 font-semibold tracking-wider text-[11px]">atau</span>
             </div>
           </div>
 
-          {/* Quick Demo Button */}
-          <button
-            type="button"
-            onClick={handleDemoFill}
-            className="w-full inline-flex items-center justify-center gap-2 text-xs text-slate-700 hover:text-slate-900 font-bold py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 transition-colors"
+          {/* Single Google SSO Button */}
+          <button 
+            type="button" 
+            className="w-full flex items-center justify-center gap-3 px-4 py-2 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium shadow-sm hover:shadow active:scale-[0.99] transition duration-150 ease-in-out"
           >
-            Login Cepat dengan Akun Demo
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"></path>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"></path>
+              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"></path>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"></path>
+            </svg>
+            <span className="font-medium text-slate-700">Masuk dengan Akun Google</span>
           </button>
+          
         </div>
 
-        {/* Bottom subtle text */}
-        <p className="text-center text-[11px] text-slate-400 mt-8 font-bold tracking-wider uppercase">
-          Dilindungi enkripsi end-to-end & JWT Auth
-        </p>
+        {/* Security Badge */}
+        <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="">Dilindungi Enkripsi End-to-End & JWT Auth</span>
+        </div>
       </div>
-    </div>
+
+      {/* Mobile Friendly Bottom Notice */}
+      <div className="text-center text-xs text-slate-400 lg:hidden pt-4">
+        © 2026 Zalde Productivity Suite. Seluruh hak cipta dilindungi.
+      </div>
+    </section>
   );
 };
