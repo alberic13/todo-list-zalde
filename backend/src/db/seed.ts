@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db, sql } from "../config/db";
-import { users, categories, tasks, subtasks } from "../models/schema";
+import { users, categories, tasks, subtasks, taskEmbeddings } from "../models/schema";
 import { EmbeddingService } from "../services/embedding.service";
 
 async function seed() {
@@ -38,7 +38,8 @@ async function seed() {
 
     const userId = user.id;
 
-    // 2. Clean existing user tasks & categories for fresh dummy seed
+    // 2. Clean existing user tasks, categories & embeddings for fresh dummy seed
+    await db.delete(taskEmbeddings).where(eq(taskEmbeddings.userId, userId));
     await db.delete(tasks).where(eq(tasks.userId, userId));
     await db.delete(categories).where(eq(categories.userId, userId));
 
