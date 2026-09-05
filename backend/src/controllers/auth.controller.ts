@@ -8,17 +8,24 @@ export const authController = new Elysia({ prefix: "/api/auth" })
   // POST /api/auth/register
   .post(
     "/register",
-    async ({ body, jwt, set }) => {
+    async ({ body, set }) => {
       try {
         const user = await AuthService.register(body.name, body.email, body.password);
-        const token = await jwt.sign({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        });
-
         set.status = 201;
-        return successResponse({ user, token }, "Registration successful");
+        return successResponse(
+          {
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              isVerified: user.isVerified,
+            },
+            needVerification: true,
+            email: user.email,
+            ...((user as any).devCode && { devCode: (user as any).devCode }),
+          },
+          user.message || "Kode verifikasi 6-digit telah dikirim ke email Anda."
+        );
       } catch (err: any) {
         set.status = 400;
         return errorResponse(err.message || "Registration failed");
@@ -36,6 +43,57 @@ export const authController = new Elysia({ prefix: "/api/auth" })
       },
     }
   )
+  // POST /api/auth/verify-email
+  .post(
+    "/verify-email",
+    async ({ body, jwt, set }) => {
+      try {
+        const user = await AuthService.verifyEmail(body.email, body.code);
+        const token = await jwt.sign({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        });
+
+        return successResponse({ user, token }, "Email berhasil diverifikasi");
+      } catch (err: any) {
+        set.status = 400;
+        return errorResponse(err.message || "Verifikasi email gagal");
+      }
+    },
+    {
+      body: t.Object({
+        email: t.String({ format: "email" }),
+        code: t.String({ minLength: 6, maxLength: 6 }),
+      }),
+      detail: {
+        tags: ["Auth"],
+        summary: "Verify email with 6-digit OTP",
+      },
+    }
+  )
+  // POST /api/auth/resend-verification
+  .post(
+    "/resend-verification",
+    async ({ body, set }) => {
+      try {
+        const result = await AuthService.resendVerificationOtp(body.email);
+        return successResponse(result, result.message);
+      } catch (err: any) {
+        set.status = 400;
+        return errorResponse(err.message || "Gagal mengirim ulang kode verifikasi");
+      }
+    },
+    {
+      body: t.Object({
+        email: t.String({ format: "email" }),
+      }),
+      detail: {
+        tags: ["Auth"],
+        summary: "Resend verification OTP code",
+      },
+    }
+  )
   // POST /api/auth/login
   .post(
     "/login",
@@ -44,6 +102,17 @@ export const authController = new Elysia({ prefix: "/api/auth" })
       if (!user) {
         set.status = 401;
         return errorResponse("Invalid email or password");
+      }
+
+      if (!user.isVerified) {
+        set.status = 403;
+        return errorResponse(
+          "Akun belum aktif. Masukkan kode verifikasi 6-digit yang dikirim ke email Anda.",
+          {
+            needVerification: true,
+            email: user.email,
+          }
+        );
       }
 
       const token = await jwt.sign({

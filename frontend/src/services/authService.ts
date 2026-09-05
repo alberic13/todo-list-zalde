@@ -6,11 +6,34 @@ export interface AuthResponse {
   token: string;
 }
 
+export interface RegisterResponse {
+  user: User;
+  token?: string;
+  needVerification?: boolean;
+  email?: string;
+  devCode?: string;
+  message?: string;
+}
+
 export const authService = {
-  async register(name: string, email: string, password: string): Promise<AuthResponse> {
-    return request<AuthResponse>("/api/auth/register", {
+  async register(name: string, email: string, password: string): Promise<RegisterResponse> {
+    return request<RegisterResponse>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
+    });
+  },
+
+  async verifyEmail(email: string, code: string): Promise<AuthResponse> {
+    return request<AuthResponse>("/api/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ email, code }),
+    });
+  },
+
+  async resendVerification(email: string): Promise<{ message: string; devCode?: string }> {
+    return request<{ message: string; devCode?: string }>("/api/auth/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email }),
     });
   },
 

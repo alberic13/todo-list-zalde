@@ -20,6 +20,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   phoneNumber: varchar("phone_number", { length: 50 }),
+  isVerified: boolean("is_verified").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -128,11 +129,31 @@ export const passwordResetTokens = pgTable(
   ]
 );
 
+// Email Verification Tokens table (6-digit OTP)
+export const emailVerificationTokens = pgTable(
+  "email_verification_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    token: varchar("token", { length: 10 }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    used: boolean("used").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("email_verification_user_idx").on(table.userId),
+    index("email_verification_token_idx").on(table.token),
+  ]
+);
+
 // Drizzle Relations
 export const usersRelations = relations(users, ({ many }) => ({
   tasks: many(tasks),
   categories: many(categories),
   passwordResetTokens: many(passwordResetTokens),
+  emailVerificationTokens: many(emailVerificationTokens),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
@@ -183,4 +204,12 @@ export const passwordResetTokensRelations = relations(passwordResetTokens, ({ on
     references: [users.id],
   }),
 }));
+
+export const emailVerificationTokensRelations = relations(emailVerificationTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [emailVerificationTokens.userId],
+    references: [users.id],
+  }),
+}));
+
 

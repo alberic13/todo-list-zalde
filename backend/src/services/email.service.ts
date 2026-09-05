@@ -169,4 +169,101 @@ export class EmailService {
 
     return this.sendEmail({ to, subject, html });
   }
+
+  /**
+   * Account Activation / Email Verification with 6-digit OTP code
+   */
+  static async sendVerificationOtpEmail({
+    to,
+    name,
+    code,
+  }: {
+    to: string;
+    name: string;
+    code: string;
+  }) {
+    const subject = `✨ Kode Verifikasi Akun: ${code} - Zalde Todo AI`;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifikasi Akun</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0b0f19; min-height: 100vh;">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; background-color: #111827; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 36px 36px 20px 36px; text-align: center;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center">
+                <tr>
+                  <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 44px; height: 44px; border-radius: 12px; text-align: center; vertical-align: middle; color: #ffffff; font-weight: bold; font-size: 20px;">
+                    ✓
+                  </td>
+                  <td style="padding-left: 14px; text-align: left;">
+                    <span style="font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: #ffffff; display: block;">Zalde Todo</span>
+                    <span style="font-size: 11px; font-weight: 600; color: #34d399; text-transform: uppercase; letter-spacing: 0.08em;">Aktivasi Akun</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 10px 36px 32px 36px;">
+              <h1 style="color: #ffffff; font-size: 20px; font-weight: 700; margin: 0 0 12px 0; text-align: center;">
+                Verifikasi Alamat Email Anda
+              </h1>
+              <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+                Halo <strong>${name}</strong>, selamat datang di Zalde Todo AI. Masukkan kode 6-digit berikut pada form pendaftaran untuk mengaktifkan akun Anda:
+              </p>
+
+              <!-- OTP Code Display Card -->
+              <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 24px;">
+                <span style="color: #6ee7b7; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 8px;">
+                  Kode Verifikasi (OTP)
+                </span>
+                <div style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #ffffff; font-family: monospace; text-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);">
+                  ${code}
+                </div>
+                <span style="color: #94a3b8; font-size: 12px; display: block; margin-top: 8px;">
+                  Berlaku selama 15 menit
+                </span>
+              </div>
+
+              <!-- Info & Security -->
+              <div style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 24px;">
+                <p style="color: #fde68a; font-size: 12px; line-height: 1.5; margin: 0;">
+                  <strong>Perhatian:</strong> Jangan berikan kode ini kepada siapapun. Tim Zalde Todo tidak pernah meminta kode OTP akun Anda.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 36px 32px 36px; border-top: 1px solid rgba(255, 255, 255, 0.05); text-align: center;">
+              <p style="color: #475569; font-size: 11px; margin: 0;">
+                © 2026 Zalde Todo AI Productivity Suite. Seluruh hak cipta dilindungi.<br>
+                Jika Anda tidak merasa mendaftar di Zalde Todo, abaikan email ini.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+
+    return this.sendEmail({ to, subject, html });
+  }
 }
+

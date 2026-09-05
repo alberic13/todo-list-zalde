@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "../types";
-import { authService } from "../services/authService";
+import { authService, RegisterResponse, AuthResponse } from "../services/authService";
 
 import { googleLogout } from "@react-oauth/google";
 
@@ -11,7 +11,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<RegisterResponse>;
+  setAuthSession: (authData: AuthResponse) => void;
   updateProfile: (data: { name?: string; phoneNumber?: string }) => Promise<User>;
   logout: () => void;
 }
@@ -61,11 +62,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(res.user);
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string): Promise<RegisterResponse> => {
     const res = await authService.register(name, email, password);
-    localStorage.setItem("auth_token", res.token);
-    setToken(res.token);
-    setUser(res.user);
+    if (res.token) {
+      localStorage.setItem("auth_token", res.token);
+      setToken(res.token);
+      setUser(res.user);
+    }
+    return res;
+  };
+
+  const setAuthSession = (authData: AuthResponse) => {
+    localStorage.setItem("auth_token", authData.token);
+    setToken(authData.token);
+    setUser(authData.user);
   };
 
   const updateProfile = async (data: { name?: string; phoneNumber?: string }): Promise<User> => {
@@ -95,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         loginWithGoogle,
         register,
+        setAuthSession,
         updateProfile,
         logout,
       }}

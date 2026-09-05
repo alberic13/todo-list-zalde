@@ -6,7 +6,7 @@ describe("E2E Auth & Task Flow", () => {
   let authToken = "";
   let createdTaskId = "";
 
-  it("should register new user", async () => {
+  it("should register new user and complete email verification", async () => {
     const res = await app.handle(
       new Request("http://localhost:3001/api/auth/register", {
         method: "POST",
@@ -22,9 +22,25 @@ describe("E2E Auth & Task Flow", () => {
     expect(res.status).toBe(201);
     const data: any = await res.json();
     expect(data.success).toBe(true);
-    expect(data.data.token).toBeString();
+    expect(data.data.needVerification).toBe(true);
     expect(data.data.user.email).toBe(testEmail);
-    authToken = data.data.token;
+
+    // Verifikasi OTP 6-digit
+    const verifyRes = await app.handle(
+      new Request("http://localhost:3001/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: testEmail,
+          code: data.data.devCode,
+        }),
+      })
+    );
+    expect(verifyRes.status).toBe(200);
+    const verifyData: any = await verifyRes.json();
+    expect(verifyData.success).toBe(true);
+    expect(verifyData.data.token).toBeString();
+    authToken = verifyData.data.token;
   }, 15000);
 
   it("should login with registered credentials", async () => {

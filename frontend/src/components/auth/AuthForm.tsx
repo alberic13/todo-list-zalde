@@ -3,6 +3,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { GoogleLogin } from "@react-oauth/google";
 import { AlertCircle, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, User, ArrowRight } from "lucide-react";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
+import { VerifyEmailModal } from "./VerifyEmailModal";
 
 interface AuthFormProps {
   showForm: boolean;
@@ -10,7 +11,7 @@ interface AuthFormProps {
 }
 
 export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
-  const { login, register, loginWithGoogle } = useAuth();
+  const { login, register, loginWithGoogle, setAuthSession } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,6 +20,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState("");
+  const [verifyDevCode, setVerifyDevCode] = useState<string | undefined>(undefined);
   const [resetTokenFromUrl, setResetTokenFromUrl] = useState("");
 
   // Detect ?reset_token= parameter from email 1-click link
@@ -45,12 +49,27 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
     try {
       if (isRegister) {
         if (!name.trim()) throw new Error("Nama lengkap wajib diisi");
-        await register(name.trim(), email.trim(), password);
+        const res = await register(name.trim(), email.trim(), password);
+        if (res.needVerification) {
+          setVerifyEmail(email.trim());
+          setVerifyDevCode(res.devCode);
+          setShowVerifyModal(true);
+        }
       } else {
         await login(email.trim(), password);
       }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Gagal melakukan autentikasi");
+    } catch (err: any) {
+      // Jika login ditolak karena akun belum diverifikasi
+      if (
+        err.data?.needVerification ||
+        err.message?.includes("belum aktif") ||
+        err.message?.includes("belum diverifikasi")
+      ) {
+        setVerifyEmail(email.trim());
+        setShowVerifyModal(true);
+      } else {
+        setError(err instanceof Error ? err.message : "Gagal melakukan autentikasi");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -277,6 +296,18 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
           setEmail(resetEmail);
           setIsRegister(false);
           setShowForgotModal(false);
+        }}
+      />
+
+      {/* Verify Email OTP Modal */}
+      <VerifyEmailModal
+        isOpen={showVerifyModal}
+        onClose={() => setShowVerifyModal(false)}
+        email={verifyEmail}
+        initialDevCode={verifyDevCode}
+        onSuccess={(authData) => {
+          setAuthSession(authData);
+          setShowVerifyModal(false);
         }}
       />
     </section>

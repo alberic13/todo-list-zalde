@@ -131,7 +131,89 @@ describe("API & Response Formatting Tests", () => {
     expect(data.success).toBe(false);
     expect(data.message).toContain("tidak ditemukan atau tidak aktif");
   });
+
+  it("should enforce email OTP verification flow on registration", async () => {
+    const uniqueEmail = `otp_test_${Date.now()}@zalde.dev`;
+
+    // 1. Register: Harus require verification
+    const regRes = await app.handle(
+      new Request("http://localhost:3001/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "OTP Tester",
+          email: uniqueEmail,
+          password: "password123",
+        }),
+      })
+    );
+    expect(regRes.status).toBe(201);
+    const regData: any = await regRes.json();
+    expect(regData.success).toBe(true);
+    expect(regData.data.needVerification).toBe(true);
+    const otpCode = regData.data.devCode;
+    expect(otpCode).toBeDefined();
+
+    // 2. Login sebelum verifikasi: Harus ditolak 403
+    const loginFailRes = await app.handle(
+      new Request("http://localhost:3001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: uniqueEmail,
+          password: "password123",
+        }),
+      })
+    );
+    expect(loginFailRes.status).toBe(403);
+    const loginFailData: any = await loginFailRes.json();
+    expect(loginFailData.success).toBe(false);
+    expect(loginFailData.message).toContain("belum aktif");
+
+    // 3. Verifikasi dengan kode salah: Harus ditolak 400
+    const verifyWrongRes = await app.handle(
+      new Request("http://localhost:3001/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: uniqueEmail,
+          code: "000000",
+        }),
+      })
+    );
+    expect(verifyWrongRes.status).toBe(400);
+
+    // 4. Verifikasi dengan kode benar: Harus sukses 200 & return JWT
+    const verifyOkRes = await app.handle(
+      new Request("http://localhost:3001/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: uniqueEmail,
+          code: otpCode,
+        }),
+      })
+    );
+    expect(verifyOkRes.status).toBe(200);
+    const verifyOkData: any = await verifyOkRes.json();
+    expect(verifyOkData.success).toBe(true);
+    expect(verifyOkData.data.token).toBeString();
+
+    // 5. Login setelah verifikasi: Sukses 200
+    const loginOkRes = await app.handle(
+      new Request("http://localhost:3001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: uniqueEmail,
+          password: "password123",
+        }),
+      })
+    );
+    expect(loginOkRes.status).toBe(200);
+  }, 20000);
 });
+
 
 
 
