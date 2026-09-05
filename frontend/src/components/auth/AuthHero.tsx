@@ -112,10 +112,6 @@ export const AuthHero: React.FC<AuthHeroProps> = ({ showForm, onShowForm }) => {
       {/* Left Bottom Legal */}
       <footer className={`relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-500 transition-all ${showForm ? "" : "justify-center gap-8"}`}>
         <span>© 2026 ZALDE PRODUCTIVITY SUITE</span>
-        <div className={`flex gap-4 ${showForm ? "" : "hidden"}`}>
-          <a className="hover:text-slate-300 transition" href="#">Privasi</a>
-          <a className="hover:text-slate-300 transition" href="#">Syarat Ketentuan</a>
-        </div>
       </footer>
     </section>
   );

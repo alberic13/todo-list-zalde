@@ -57,9 +57,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
           <ArrowLeft className="w-4 h-4 text-slate-500 group-hover:-translate-x-1 transition-transform" />
           Kembali
         </button>
-        <div className="text-xs font-medium text-slate-500">
-          Butuh bantuan? <a className="text-indigo-600 hover:underline font-semibold" href="#">Hubungi Dukungan</a>
-        </div>
       </nav>
 
       {/* Center Auth Box Container */}
