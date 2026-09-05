@@ -102,6 +102,9 @@ todo-list-zalde/
    - Autentikasi JWT dengan password hashing Argon2id.
    - Validasi schema input TypeBox & proteksi SQL Injection via Drizzle ORM.
    - **Upstash Redis Rate Limiter**: Proteksi endpoint AI serverless-ready untuk mencegah eksploitasi dan pembengkakan tagihan API.
+5. **🚀 Optimasi Performa & Clean Code (Terbaru)**:
+   - **Frontend (Code Splitting)**: Implementasi `React.lazy()` & `Suspense` memecah *bundle* halaman `Dashboard`. Halaman Auth kini memuat lebih instan.
+   - **Backend (DRY Auth Guard)**: Sentralisasi *middleware* `requireAuth` di Elysia.js menghapus redundansi cek otorisasi pada 15+ endpoint, menghasilkan kode yang jauh lebih ringkas dan *type-safe*.
 
 ---
 
