@@ -19,6 +19,7 @@
     "@upstash/redis": "^1.38.4",
     "drizzle-orm": "^0.39.3",
     "elysia": "^1.2.10",
+    "google-auth-library": "^11.0.2",
     "postgres": "^3.4.5"
   },
   "devDependencies": {

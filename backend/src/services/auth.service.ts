@@ -1,6 +1,9 @@
 import { eq } from "drizzle-orm";
 import { db } from "../config/db";
 import { users } from "../models/schema";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export class AuthService {
   static async findByEmail(email: string) {
@@ -93,5 +96,51 @@ export class AuthService {
       });
 
     return updatedUser;
+  }
+
+  static async loginWithGoogle(token: string) {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      throw new Error("GOOGLE_CLIENT_ID is not configured");
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      throw new Error("Invalid Google token payload");
+    }
+
+    const email = payload.email.toLowerCase().trim();
+    let user = await this.findByEmail(email);
+
+    if (!user) {
+      const dummyPassword = crypto.randomUUID() + crypto.randomUUID();
+      const passwordHash = await Bun.password.hash(dummyPassword, {
+        algorithm: "argon2id",
+        memoryCost: 65536,
+        timeCost: 2,
+      });
+
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          name: payload.name || "Google User",
+          email,
+          passwordHash,
+        })
+        .returning();
+      
+      user = newUser;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      phoneNumber: user.phoneNumber,
+    };
   }
 }

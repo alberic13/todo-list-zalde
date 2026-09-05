@@ -65,6 +65,35 @@ export const authController = new Elysia({ prefix: "/api/auth" })
       },
     }
   )
+  // POST /api/auth/google
+  .post(
+    "/google",
+    async ({ body, jwt, set }) => {
+      try {
+        const user = await AuthService.loginWithGoogle(body.credential);
+        
+        const token = await jwt.sign({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        });
+
+        return successResponse({ user, token }, "Google Login successful");
+      } catch (err: any) {
+        set.status = 401;
+        return errorResponse(err.message || "Google Login failed");
+      }
+    },
+    {
+      body: t.Object({
+        credential: t.String(),
+      }),
+      detail: {
+        tags: ["Auth"],
+        summary: "Login with Google",
+      },
+    }
+  )
   // GET /api/auth/me
   .get(
     "/me",

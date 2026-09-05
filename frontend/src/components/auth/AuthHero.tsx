@@ -42,7 +42,7 @@ export const AuthHero: React.FC<AuthHeroProps> = ({ showForm, onShowForm }) => {
         </p>
         
         {/* Wrapper to align Button to the right edge of Badges */}
-        <div className={`flex flex-col ${showForm ? "" : "items-center md:items-end"} w-full max-w-fit mx-auto`}>
+        <div className={`flex flex-col ${showForm ? "w-full" : "items-center md:items-end w-full max-w-fit mx-auto"}`}>
           
           {/* Feature Badges */}
           <div className={`flex flex-wrap gap-2.5 mb-8 transition-all duration-700 ${showForm ? "" : "justify-center pt-2"}`}>
