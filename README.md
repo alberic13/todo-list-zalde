@@ -98,9 +98,10 @@ todo-list-zalde/
    - **Pengaturan Nomor Akun**: Simpan nomor WhatsApp pengguna langsung ke database PostgreSQL (`users.phone_number`).
    - **1-Click WhatsApp Delivery**: Zalde AI merangkum jadwal prioritas harian dan menyediakan tombol direct chat WhatsApp terformat rapi.
    - **UI/UX macOS Theme**: Trigger icon gear minimalis di navbar dengan pop-up React Portal terpusat.
-4. **🔒 Keamanan & Type-Safety End-to-End**:
+4. **🔒 Keamanan & Performa End-to-End**:
    - Autentikasi JWT dengan password hashing Argon2id.
    - Validasi schema input TypeBox & proteksi SQL Injection via Drizzle ORM.
+   - **Upstash Redis Rate Limiter**: Proteksi endpoint AI serverless-ready untuk mencegah eksploitasi dan pembengkakan tagihan API.
 
 ---
 
