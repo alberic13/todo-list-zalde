@@ -37,14 +37,18 @@ export const authPlugin = new Elysia({ name: "authPlugin" })
         name: payload.name,
       } as AuthUserPayload,
     };
-  });
+  })
+  .as("scoped");
 
 export const requireAuth = new Elysia({ name: "requireAuth" })
   .use(authPlugin)
-  .onBeforeHandle(({ user, set }) => {
+  .onBeforeHandle({ as: "scoped" }, ({ user, set }) => {
     if (!user) {
       set.status = 401;
       return errorResponse("Unauthorized", { code: "UNAUTHORIZED" });
     }
   })
-  .resolve({ as: "scoped" }, ({ user }) => ({ user: user as AuthUserPayload }));
+  .derive({ as: "scoped" }, ({ user }) => ({
+    user: user as AuthUserPayload,
+  }))
+  .as("scoped");
