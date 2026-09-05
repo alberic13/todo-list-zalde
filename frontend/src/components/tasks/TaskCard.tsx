@@ -11,6 +11,7 @@ import {
   GripVertical,
   CheckSquare,
 } from "lucide-react";
+import { calendarService } from "../../services/calendarService";
 
 export interface TaskCardProps {
   task: Task;
@@ -166,6 +167,22 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
                   >
                     <Edit2 className="w-3.5 h-3.5 text-indigo-600" /> Edit Detail
                   </button>
+                  {task.dueDate && (
+                    <a
+                      href={calendarService.generateGoogleCalendarUrl({
+                        title: task.title,
+                        description: task.description,
+                        dueDate: task.dueDate,
+                        priority: task.priority,
+                      })}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setShowMenu(false)}
+                      className="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-indigo-600 hover:bg-slate-100 flex items-center gap-2 transition-colors"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-blue-600" /> Ke Google Cal
+                    </a>
+                  )}
                   <div className="my-1 border-t border-slate-100" />
                   <button
                     onClick={() => {

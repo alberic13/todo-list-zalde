@@ -7,6 +7,7 @@ import { authController } from "./controllers/auth.controller";
 import { categoryController } from "./controllers/category.controller";
 import { taskController } from "./controllers/task.controller";
 import { aiController } from "./controllers/ai.controller";
+import { calendarController } from "./controllers/calendar.controller";
 import { successResponse } from "./utils/response";
 
 export const app = new Elysia()
@@ -32,6 +33,7 @@ export const app = new Elysia()
           { name: "Tasks", description: "Task and Subtask CRUD operations" },
           { name: "Categories", description: "Task Category management" },
           { name: "AI & RAG", description: "Semantic vector search, RAG Copilot, and Task Breakdown" },
+          { name: "Calendar", description: "Live iCal RFC 5545 feed & calendar sync" },
         ],
       },
     })
@@ -53,7 +55,8 @@ export const app = new Elysia()
   .use(authController)
   .use(categoryController)
   .use(taskController)
-  .use(aiController);
+  .use(aiController)
+  .use(calendarController);
 
 // Listen when executed directly (skip on Vercel Serverless or in Test)
 if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
