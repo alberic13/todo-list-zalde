@@ -44,7 +44,7 @@ export class GeminiClient {
   }
 
   /**
-   * Ultra-fast text response using lightweight, low-latency Gemini Flash Lite models (<1s)
+   * Ultra-fast text response using Gemini Flash models
    */
   static async generateContent(prompt: string, systemInstruction?: string): Promise<string> {
     const apiKey = this.getApiKey();
@@ -54,10 +54,9 @@ export class GeminiClient {
 
     // Prioritized by lowest latency and high availability
     const candidateModels = [
-      "gemini-3.5-flash-lite",
-      "gemini-flash-lite-latest",
-      "gemini-3.6-flash",
-      "gemini-3.1-flash-lite",
+      "gemini-3.6-flash", // Required for current 2026 API
+      "gemini-2.0-flash", // Legacy user request
+      "gemini-1.5-flash", // Legacy user request
     ];
 
     for (const model of candidateModels) {

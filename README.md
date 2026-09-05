@@ -33,7 +33,7 @@ Aplikasi manajemen tugas modern berbasis **AI & RAG (Retrieval-Augmented Generat
 
 - **Backend**: [Bun](https://bun.sh) + [Elysia.js](https://elysiajs.com) + [Drizzle ORM](https://orm.drizzle.team) + PostgreSQL (`pgvector`) di [Neon](https://neon.tech)
 - **Frontend**: [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) + [Vite](https://vitejs.dev) + [Tailwind CSS v4](https://tailwindcss.com) + [Lucide Icons](https://lucide.dev)
-- **AI & RAG Engine**: Google Gemini API (Gemini Flash untuk LLM/RAG Copilot + Gemini Embedding untuk Semantic Vector Search 768-dim)
+- **AI & RAG Engine**: Google Gemini API (`gemini-3.6-flash` untuk LLM/RAG Copilot + `gemini-embedding-001` untuk Semantic Vector Search 768-dim)
 - **CI/CD & Cloud Hosting**: Vercel Serverless (Bun & Node runtime) + GitHub Actions CI/CD Pipeline
 
 ---
