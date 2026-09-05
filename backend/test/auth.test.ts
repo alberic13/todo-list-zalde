@@ -95,6 +95,43 @@ describe("API & Response Formatting Tests", () => {
     expect(resetData.success).toBe(true);
     expect(resetData.message).toContain("berhasil diperbarui");
   }, 15000);
+
+  it("should reject registration with disposable email domain", async () => {
+    const response = await app.handle(
+      new Request("http://localhost:3001/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Spam Bot",
+          email: "spammer@yopmail.com",
+          password: "password123",
+        }),
+      })
+    );
+    expect(response.status).toBe(400);
+    const data: any = await response.json();
+    expect(data.success).toBe(false);
+    expect(data.message).toContain("disposable");
+  });
+
+  it("should reject registration with nonexistent email domain", async () => {
+    const response = await app.handle(
+      new Request("http://localhost:3001/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Fake User",
+          email: "fakeuser@nonexistent123domain999.com",
+          password: "password123",
+        }),
+      })
+    );
+    expect(response.status).toBe(400);
+    const data: any = await response.json();
+    expect(data.success).toBe(false);
+    expect(data.message).toContain("tidak ditemukan atau tidak aktif");
+  });
 });
+
 
 

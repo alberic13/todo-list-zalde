@@ -4,6 +4,7 @@ import { users, passwordResetTokens } from "../models/schema";
 import { OAuth2Client } from "google-auth-library";
 import { EmailService } from "./email.service";
 import { env } from "../config/env";
+import { validateEmailDomain } from "../utils/emailValidator";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -31,6 +32,13 @@ export class AuthService {
 
   static async register(name: string, email: string, password: string) {
     const cleanEmail = email.toLowerCase().trim();
+
+    // Validasi Lapis 1: Cek DNS MX dan filter domain palsu / disposable email
+    const validation = await validateEmailDomain(cleanEmail);
+    if (!validation.valid) {
+      throw new Error(validation.message || "Domain email tidak valid");
+    }
+
     const existing = await this.findByEmail(cleanEmail);
     if (existing) {
       throw new Error("Email already registered");
