@@ -2,16 +2,22 @@ import { Elysia, t } from "elysia";
 import { RagService } from "../services/rag.service";
 import { authPlugin } from "../middlewares/auth.middleware";
 import { successResponse, errorResponse } from "../utils/response";
+import { env } from "../config/env";
+import { Redis } from "@upstash/redis";
 
-// Custom in-memory rate limiter untuk melindungi API Gemini
+// Custom Rate Limiter (Upstash Redis + Memory Fallback)
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 const MAX_REQUESTS = 30; // 30 request
 const WINDOW_MS = 3600000; // per jam
+const WINDOW_SEC = 3600; // 1 jam
 
-const aiRateLimiter = new Elysia({ name: "aiRateLimiter" }).onBeforeHandle(({ request, set }) => {
-  const ip = request.headers.get("x-forwarded-for") || "unknown";
+// Inisialisasi Redis hanya jika kredensial tersedia
+const redis = (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) 
+  ? new Redis({ url: env.UPSTASH_REDIS_REST_URL, token: env.UPSTASH_REDIS_REST_TOKEN }) 
+  : null;
+
+function processMemoryRateLimit(ip: string): number {
   const now = Date.now();
-  
   let record = rateLimitMap.get(ip);
   if (!record || now - record.lastReset > WINDOW_MS) {
     record = { count: 1, lastReset: now };
@@ -19,8 +25,29 @@ const aiRateLimiter = new Elysia({ name: "aiRateLimiter" }).onBeforeHandle(({ re
     record.count++;
   }
   rateLimitMap.set(ip, record);
+  return record.count;
+}
 
-  if (record.count > MAX_REQUESTS) {
+const aiRateLimiter = new Elysia({ name: "aiRateLimiter" }).onBeforeHandle(async ({ request, set }) => {
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  let currentCount = 0;
+
+  if (redis) {
+    const key = `rate_limit:ai:${ip}`;
+    try {
+      currentCount = await redis.incr(key);
+      if (currentCount === 1) {
+        await redis.expire(key, WINDOW_SEC);
+      }
+    } catch (err) {
+      console.error("Upstash Redis error:", err);
+      currentCount = processMemoryRateLimit(ip);
+    }
+  } else {
+    currentCount = processMemoryRateLimit(ip);
+  }
+
+  if (currentCount > MAX_REQUESTS) {
     set.status = 429;
     return new Response(
       JSON.stringify({
