@@ -3,7 +3,10 @@ import postgres from "postgres";
 import * as schema from "../models/schema";
 import { env } from "./env";
 
-const connectionString = env.DATABASE_URL;
+const connectionString =
+  env.DATABASE_URL && env.DATABASE_URL.trim().startsWith("postgres")
+    ? env.DATABASE_URL.trim()
+    : "postgresql://postgres:postgres@localhost:5432/zalde_todo";
 
 // PostgreSQL client configured for transaction safety and pooling
 export const sql = postgres(connectionString, {

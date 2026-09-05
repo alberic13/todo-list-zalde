@@ -60,7 +60,8 @@ export async function validateEmailDomain(email: string): Promise<EmailValidatio
   }
 
   // Bypass DNS query saat running test suite untuk domain testing
-  if (env.NODE_ENV === "test" && (domain === "zalde.dev" || domain === "zalde.com" || domain === "test.local")) {
+  const isTestEnv = env.NODE_ENV === "test" || process.env.NODE_ENV === "test";
+  if (isTestEnv && (domain === "zalde.dev" || domain === "zalde.com" || domain === "test.local")) {
     return { valid: true };
   }
 

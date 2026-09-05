@@ -1,6 +1,15 @@
+process.env.NODE_ENV = "test";
 import { describe, expect, it } from "bun:test";
 import { successResponse, errorResponse } from "../src/utils/response";
 import { app } from "../src/index";
+
+const rawDbUrl = (process.env.DATABASE_URL || "").trim();
+const hasDatabase = Boolean(
+  rawDbUrl.length > 0 &&
+  rawDbUrl.startsWith("postgres") &&
+  !rawDbUrl.includes("your_") &&
+  rawDbUrl !== "postgresql://postgres:postgres@localhost:5432/zalde_todo"
+);
 
 describe("API & Response Formatting Tests", () => {
   it("should format standardized success response", () => {
@@ -38,7 +47,7 @@ describe("API & Response Formatting Tests", () => {
     expect(data.message).toContain("Unauthorized");
   });
 
-  it("should process forgot-password request cleanly", async () => {
+  it.skipIf(!hasDatabase)("should process forgot-password request cleanly", async () => {
     const response = await app.handle(
       new Request("http://localhost:3001/api/auth/forgot-password", {
         method: "POST",
@@ -53,7 +62,7 @@ describe("API & Response Formatting Tests", () => {
     expect(data.data.message).toBeDefined();
   }, 15000);
 
-  it("should reject reset-password with invalid token", async () => {
+  it.skipIf(!hasDatabase)("should reject reset-password with invalid token", async () => {
     const response = await app.handle(
       new Request("http://localhost:3001/api/auth/reset-password", {
         method: "POST",
@@ -68,7 +77,7 @@ describe("API & Response Formatting Tests", () => {
     expect(data.message).toContain("tidak valid atau telah kedaluwarsa");
   }, 15000);
 
-  it("should complete full password reset flow with valid token", async () => {
+  it.skipIf(!hasDatabase)("should complete full password reset flow with valid token", async () => {
     // 1. Request reset
     const reqRes = await app.handle(
       new Request("http://localhost:3001/api/auth/forgot-password", {
@@ -132,7 +141,7 @@ describe("API & Response Formatting Tests", () => {
     expect(data.message).toContain("tidak ditemukan atau tidak aktif");
   });
 
-  it("should enforce email OTP verification flow on registration", async () => {
+  it.skipIf(!hasDatabase)("should enforce email OTP verification flow on registration", async () => {
     const uniqueEmail = `otp_test_${Date.now()}@zalde.dev`;
 
     // 1. Register: Harus require verification

@@ -37,6 +37,7 @@ jobs:
       - name: Backend Unit Tests
         working-directory: backend
         env:
+          NODE_ENV: test
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET || 'test_jwt_secret_32_chars_for_ci_pipeline_ok!' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
