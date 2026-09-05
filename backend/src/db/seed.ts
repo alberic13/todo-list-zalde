@@ -201,9 +201,9 @@ async function seed() {
     console.log("==========================================");
   } catch (error) {
     console.error("❌ Gagal melakukan seeding database:", error);
+    process.exitCode = 1;
   } finally {
     await sql.end();
-    process.exit(0);
   }
 }
 

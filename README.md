@@ -31,8 +31,9 @@ Aplikasi manajemen tugas modern berbasis **AI & RAG (Retrieval-Augmented Generat
 
 ## 🛠️ Tech Stack
 
-- **Backend**: [Bun](https://bun.sh) + [Elysia.js](https://elysiajs.com) + [Drizzle ORM](https://orm.drizzle.team) + PostgreSQL (`pgvector`) di [Neon](https://neon.tech)
+- **Backend**: [Bun](https://bun.sh) + [Elysia.js](https://elysiajs.com) + [Drizzle ORM](https://orm.drizzle.team) + PostgreSQL (`pgvector`) di [Neon](https://neon.tech) + [Upstash Redis](https://upstash.com) (Rate Limiting)
 - **Frontend**: [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) + [Vite](https://vitejs.dev) + [Tailwind CSS v4](https://tailwindcss.com) + [Lucide Icons](https://lucide.dev)
+- **Autentikasi & Keamanan**: JWT Scoped (`argon2id` hashing) + Google OAuth 2.0 SSO (`@react-oauth/google` & `google-auth-library`)
 - **AI & RAG Engine**: Google Gemini API (`gemini-3.6-flash` untuk LLM/RAG Copilot + `gemini-embedding-001` untuk Semantic Vector Search 768-dim)
 - **CI/CD & Cloud Hosting**: Vercel Serverless (Bun & Node runtime) + GitHub Actions CI/CD Pipeline
 
@@ -49,30 +50,35 @@ todo-list-zalde/
 │   ├── src/
 │   │   ├── config/             # DB (Neon), AI (Gemini client), & Env config
 │   │   ├── controllers/        # Auth (Profile & Phone), Task, Category, AI endpoints
-│   │   ├── middlewares/        # JWT Auth & Centralized Error handlers
-│   │   ├── models/             # Drizzle PostgreSQL schemas (users.phone_number, tasks, vectors)
+│   │   ├── db/                 # Database Seeder (seed.ts: demo user, tasks, subtasks & embeddings)
+│   │   ├── middlewares/        # Scoped JWT Auth & Centralized Error handlers
+│   │   ├── models/             # Drizzle PostgreSQL schemas (users, tasks, categories, embeddings)
 │   │   ├── services/           # Auth, Task, Category, Embedding, & RAG logic
-│   │   ├── utils/              # Standardized response formatters
+│   │   ├── utils/              # Standardized response formatters (ApiResponse)
 │   │   └── index.ts            # Elysia Server & Swagger API entry point
-│   ├── test/                   # Bun unit & E2E integration test suites
+│   ├── test/                   # Bun unit & E2E integration test suites (auth, e2e, rag)
+│   ├── drizzle/                # Generated Drizzle SQL migrations
 │   ├── drizzle.config.ts       # Drizzle Kit migration configuration
 │   ├── vercel.json             # Backend Bun runtime serverless configuration
 │   └── package.json
 ├── frontend/                   # React 19 + TypeScript + Tailwind CSS v4 + Vite
 │   ├── public/                 # Static assets & icons
 │   ├── src/
-│   │   ├── components/         # UI Elements (Modal with Portal), Layout (Navbar & SettingsModal), Tasks, AI Drawer
+│   │   ├── components/         # UI Elements, Layout, Tasks Kanban, AI Drawer
 │   │   │   ├── ai/             # AiChatDrawer (WhatsApp 1-Click share & contextual copilot)
-│   │   │   ├── auth/           # AuthHero & AuthForm (Refactored Clean Code login components)
-│   │   │   ├── layout/         # Navbar (Mac-style gear trigger), SettingsModal (WhatsApp phone setup)
+│   │   │   ├── auth/           # AuthHero & AuthForm (Login & Register components)
+│   │   │   ├── layout/         # Navbar (Settings trigger), SettingsModal (WhatsApp phone setup)
 │   │   │   ├── stats/          # StatOverview & progress cards
 │   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar
 │   │   │   └── ui/             # Button, Input, Badge, Modal, Skeleton, BrandDots
 │   │   ├── hooks/              # useAuth (with profile & phone state), useTasks custom state hooks
-│   │   ├── pages/              # Dashboard (Kanban workspace) & AuthPage (Wrapper layout)
-│   │   ├── services/           # Axios/Fetch API client & error handling
+│   │   ├── pages/              # Dashboard (Lazy-loaded Kanban) & AuthPage (Authentication)
+│   │   ├── services/           # API client handlers (ai, auth, category, task)
 │   │   ├── types/              # TypeScript definitions & data contracts
-│   │   └── utils/              # Date formatters & styling helpers
+│   │   ├── utils/              # Date formatters & styling helpers
+│   │   ├── App.tsx             # Main App router & auth state wrapper
+│   │   ├── index.css           # Tailwind CSS v4 theme tokens & styles
+│   │   └── main.tsx            # Vite React entry point
 │   ├── index.html
 │   ├── vite.config.ts
 │   ├── vercel.json             # Frontend SPA route rewrites configuration
