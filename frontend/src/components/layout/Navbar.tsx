@@ -99,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             type="button"
             onClick={onOpenSettings}
-            title="Pengaturan Integrasi WhatsApp"
+            title="Pengaturan & Kalender"
             className="p-1.5 text-slate-500 hover:text-slate-900 transition-colors duration-200 active:scale-95 group"
           >
             <Settings className="w-4 h-4 group-hover:rotate-45 transition-transform duration-300" />
