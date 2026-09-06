@@ -66,10 +66,11 @@ todo-list-zalde/
 ├── frontend/                   # React 19 + TypeScript + Tailwind CSS v4 + Vite
 │   ├── public/                 # Static assets & icons
 │   ├── src/
-│   │   ├── components/         # UI Elements, Layout, Tasks Kanban, AI Drawer
+│   │   ├── components/         # UI Elements, Layout, Settings, Tasks Kanban, AI Drawer
 │   │   │   ├── ai/             # AiChatDrawer (WhatsApp share & contextual copilot)
 │   │   │   ├── auth/           # AuthHero & AuthForm (Login, Register, OTP & Reset)
-│   │   │   ├── layout/         # Navbar, SettingsModal (WhatsApp & iCal Calendar sync)
+│   │   │   ├── layout/         # Navbar, SettingsModal (Modal container dialog)
+│   │   │   ├── settings/       # CalendarTab (Google/Apple sync) & WhatsAppTab (WA reminder)
 │   │   │   ├── stats/          # StatOverview & progress cards
 │   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar
 │   │   │   └── ui/             # Button, Input, Badge, Modal, Skeleton, BrandDots
