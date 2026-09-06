@@ -11,6 +11,8 @@ export interface ModalProps {
   children: React.ReactNode;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
   className?: string;
+  hideHeader?: boolean;
+  hideCloseButton?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -21,6 +23,8 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = "md",
   className,
+  hideHeader = false,
+  hideCloseButton = false,
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -59,24 +63,29 @@ export const Modal: React.FC<ModalProps> = ({
         )}
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-5">
-          <div>
-            {title && (
-              <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                {title}
-              </h3>
-            )}
-            {description && (
-              <p className="text-xs text-slate-500 mt-1 font-medium">{description}</p>
+        {!hideHeader && (title || description || !hideCloseButton) && (
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              {title && (
+                <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                  {title}
+                </h3>
+              )}
+              {description && (
+                <p className="text-xs text-slate-500 mt-1 font-medium">{description}</p>
+              )}
+            </div>
+            {!hideCloseButton && (
+              <button
+                onClick={onClose}
+                className="text-slate-400 hover:text-slate-800 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                aria-label="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-800 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        )}
 
         {/* Content */}
         <div>{children}</div>

@@ -118,7 +118,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = React.memo(({
             </div>
 
             {/* Task Cards Drop Zone */}
-            <div className="space-y-3.5 flex-1 overflow-y-auto max-h-[calc(100vh-280px)] pr-1 min-h-[220px]">
+            <div className="space-y-3.5 flex-1 overflow-y-auto max-h-[calc(100vh-280px)] pr-1 min-h-[220px] pb-16">
               {colTasks.length === 0 ? (
                 <div
                   className={`h-40 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center p-4 transition-all ${
@@ -152,6 +152,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = React.memo(({
                     task={task}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onStatusChange={onStatusChange}
                     onToggleSubtask={onToggleSubtask}
                   />
                 ))

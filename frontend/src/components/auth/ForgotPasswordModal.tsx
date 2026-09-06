@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "../ui/Modal";
 import { authService } from "../../services/authService";
-import { Mail, Lock, KeyRound, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -24,7 +23,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -32,7 +31,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   const [devCode, setDevCode] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
-  // Countdown timer for 60s cooldown
+  // Countdown timer for cooldown
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setInterval(() => {
@@ -66,11 +65,11 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     onClose();
   };
 
-  // Step 1: Request Reset Code via Resend
+  // Step 1: Request Reset Code
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError("Silakan masukkan alamat email terdaftar");
+      setError("Silakan masukkan alamat email yang terdaftar.");
       return;
     }
 
@@ -87,15 +86,15 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
       }
       if (res.devCode) {
         setDevCode(res.devCode);
-        setToken(res.devCode); // autofill for dev testing convenience
+        setToken(res.devCode);
       } else {
         setDevCode(null);
-        setToken(""); // User must read from actual email inbox
+        setToken("");
       }
       setStep("reset");
       setCooldown(60);
     } catch (err: any) {
-      setError(err.message || "Gagal memproses permintaan reset kata sandi");
+      setError(err.message || "Gagal memproses permintaan reset kata sandi.");
     } finally {
       setIsLoading(false);
     }
@@ -105,17 +104,17 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   const handleConfirmReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token.trim()) {
-      setError("Silakan masukkan kode verifikasi 6 digit");
+      setError("Silakan masukkan kode verifikasi 6 digit.");
       return;
     }
 
     if (newPassword.length < 6) {
-      setError("Kata sandi baru minimal 6 karakter");
+      setError("Kata sandi baru minimal 6 karakter.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Konfirmasi kata sandi tidak cocok");
+      setError("Konfirmasi kata sandi tidak cocok.");
       return;
     }
 
@@ -126,7 +125,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
       await authService.resetPassword(token.trim(), newPassword);
       setStep("done");
     } catch (err: any) {
-      setError(err.message || "Kode verifikasi tidak valid atau telah kedaluwarsa");
+      setError(err.message || "Kode verifikasi tidak valid atau telah kedaluwarsa.");
     } finally {
       setIsLoading(false);
     }
@@ -137,101 +136,107 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
       isOpen={isOpen}
       onClose={handleResetModalState}
       maxWidth="md"
-      title={
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/20">
-            <KeyRound className="w-5 h-5" />
+      hideHeader
+      className="rounded-2xl border border-slate-200/90 bg-white/98 shadow-[0_24px_50px_-12px_rgba(15,23,42,0.18)] p-6 sm:p-7 text-slate-900"
+    >
+      {/* Custom Header: Clean, Typographic, No Icons */}
+      <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 mb-5">
+        <div>
+          <div className="text-[11px] font-semibold tracking-wider text-slate-600 uppercase mb-1">
+            Pemulihan Akun
           </div>
-          <span>
+          <h3 className="text-lg font-bold text-slate-900 tracking-tight">
             {step === "request" && "Lupa Kata Sandi"}
             {step === "reset" && "Verifikasi Kode Reset"}
             {step === "done" && "Kata Sandi Diperbarui"}
+          </h3>
+          <p className="text-xs text-slate-500 mt-1 leading-relaxed max-w-sm">
+            {step === "request" &&
+              "Masukkan alamat email yang terdaftar. Kami akan mengirimkan kode verifikasi 6 digit untuk mengatur ulang kata sandi Anda."}
+            {step === "reset" &&
+              `Masukkan 6 digit kode verifikasi yang telah dikirim ke ${email || "email Anda"}.`}
+            {step === "done" &&
+              "Kata sandi akun Anda telah berhasil diperbarui dan siap digunakan kembali."}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleResetModalState}
+          className="text-xs font-semibold text-slate-500 hover:text-slate-900 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition cursor-pointer shrink-0"
+        >
+          Tutup
+        </button>
+      </div>
+
+      {/* Error notification */}
+      {error && (
+        <div className="p-3 rounded-xl bg-rose-50/90 border-l-3 border-rose-500 text-rose-800 text-xs font-medium mb-4 leading-relaxed animate-in fade-in duration-200">
+          {error}
+        </div>
+      )}
+
+      {/* Success notification */}
+      {message && !error && !warning && (
+        <div className="p-3 rounded-xl bg-emerald-50/90 border-l-3 border-emerald-500 text-emerald-800 text-xs font-medium mb-4 leading-relaxed animate-in fade-in duration-200">
+          {message}
+        </div>
+      )}
+
+      {/* Delivery warning notice */}
+      {warning && (
+        <div className="p-3 rounded-xl bg-amber-50/90 border-l-3 border-amber-500 text-amber-900 text-xs font-medium mb-4 leading-relaxed animate-in fade-in duration-200">
+          <span className="font-semibold block mb-0.5">Catatan Pengiriman:</span>
+          <span>{warning}</span>
+        </div>
+      )}
+
+      {/* Development code helper */}
+      {devCode && (
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs flex items-center justify-between mb-4 font-medium">
+          <span>Mode Dev: Kode OTP Anda</span>
+          <span className="font-mono text-xs font-bold tracking-widest bg-slate-200/80 px-2 py-0.5 rounded text-slate-900">
+            {devCode}
           </span>
         </div>
-      }
-      description={
-        step === "request"
-          ? "Masukkan email Anda untuk menerima kode verifikasi pemulihan akun."
-          : step === "reset"
-          ? `Masukkan kode 6-digit yang dikirim ke ${email || "email Anda"}.`
-          : "Kata sandi akun Anda berhasil diperbarui."
-      }
-    >
-      {/* Error alert */}
-      {error && (
-        <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/80 text-rose-700 text-xs flex items-center gap-2.5 mb-4 font-medium animate-in fade-in duration-200">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
-          <span>{error}</span>
-        </div>
       )}
 
-      {/* Info message */}
-      {message && !error && !warning && (
-        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs flex items-center gap-2.5 mb-4 font-medium animate-in fade-in duration-200">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
-          <span>{message}</span>
-        </div>
-      )}
-
-      {/* Warning alert if Resend testing restriction occurs */}
-      {warning && (
-        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-800 text-xs flex items-start gap-2.5 mb-4 font-medium animate-in fade-in duration-200">
-          <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-          <div className="leading-relaxed">
-            <span className="font-semibold block mb-0.5">Catatan Pengiriman:</span>
-            <span>{warning}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Dev notice if simulated or devCode available */}
-      {devCode && (
-        <div className="p-3 rounded-2xl bg-indigo-50/80 border border-indigo-200 text-indigo-700 text-xs flex items-center justify-between mb-4 font-medium">
-          <span>💡 [Dev Mode] Kode OTP Anda: <strong className="font-mono text-sm tracking-wider">{devCode}</strong></span>
-        </div>
-      )}
-
-      {/* STEP 1: Input Email */}
+      {/* STEP 1: Request Reset Code */}
       {step === "request" && (
-        <form onSubmit={handleRequestReset} className="space-y-4 pt-1">
+        <form onSubmit={handleRequestReset} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5" htmlFor="reset-email">
+            <label
+              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              htmlFor="reset-email"
+            >
               Alamat Email Terdaftar
             </label>
-            <div className="relative rounded-xl shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                <Mail className="h-4 w-4" />
-              </div>
-              <input
-                id="reset-email"
-                type="email"
-                required
-                placeholder="nama@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-xl border border-slate-200 pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition duration-150"
-              />
-            </div>
+            <input
+              id="reset-email"
+              type="email"
+              required
+              placeholder="nama@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition shadow-xs"
+            />
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <button
               type="submit"
               disabled={isLoading || cooldown > 0}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 active:scale-[0.99] text-white text-sm font-semibold tracking-wide shadow-lg shadow-slate-900/15 hover:shadow-slate-900/25 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 active:bg-black text-white text-sm font-semibold tracking-normal shadow-sm transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
-                  <span>Mengirim Email...</span>
+                  <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Mengirim Kode...</span>
                 </>
               ) : cooldown > 0 ? (
                 <span>Tunggu ({cooldown}s) untuk Kirim Ulang</span>
               ) : (
-                <>
-                  <span>Kirim Kode Verifikasi</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                <span>Kirim Kode Verifikasi</span>
               )}
             </button>
           </div>
@@ -240,114 +245,105 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
       {/* STEP 2: Input Code & New Password */}
       {step === "reset" && (
-        <form onSubmit={handleConfirmReset} className="space-y-3.5 pt-1">
+        <form onSubmit={handleConfirmReset} className="space-y-3.5">
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-semibold text-slate-700" htmlFor="reset-token">
+              <label
+                className="block text-xs font-semibold text-slate-700"
+                htmlFor="reset-token"
+              >
                 Kode Verifikasi (6 Digit)
               </label>
-              <div className="flex items-center gap-2 text-[11px]">
-                <button
-                  type="button"
-                  disabled={isLoading || cooldown > 0}
-                  onClick={handleRequestReset}
-                  className="text-indigo-600 hover:text-indigo-800 disabled:text-slate-400 font-semibold cursor-pointer disabled:cursor-not-allowed transition"
-                >
-                  {cooldown > 0 ? `Kirim Ulang (${cooldown}s)` : "Kirim Ulang Kode"}
-                </button>
-                <span className="text-slate-300">|</span>
-                <button
-                  type="button"
-                  onClick={() => setStep("request")}
-                  className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <ArrowLeft className="w-3 h-3" /> Ganti Email
-                </button>
-              </div>
+              <button
+                type="button"
+                disabled={isLoading || cooldown > 0}
+                onClick={handleRequestReset}
+                className="text-[11px] text-slate-600 hover:text-slate-900 disabled:text-slate-400 font-semibold cursor-pointer disabled:cursor-not-allowed transition"
+              >
+                {cooldown > 0 ? `Kirim Ulang (${cooldown}s)` : "Kirim Ulang"}
+              </button>
             </div>
-            <div className="relative rounded-xl shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                <KeyRound className="h-4 w-4" />
-              </div>
-              <input
-                id="reset-token"
-                type="text"
-                required
-                maxLength={20}
-                placeholder="Contoh: 123456"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="block w-full rounded-xl border border-slate-200 pl-10 pr-3.5 py-2.5 text-sm font-mono tracking-widest text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition duration-150"
-              />
-            </div>
+            <input
+              id="reset-token"
+              type="text"
+              required
+              maxLength={20}
+              placeholder="123456"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-base font-mono tracking-widest text-slate-900 placeholder:text-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition shadow-xs"
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5" htmlFor="reset-new-password">
-              Kata Sandi Baru
-            </label>
-            <div className="relative rounded-xl shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                <Lock className="h-4 w-4" />
-              </div>
-              <input
-                id="reset-new-password"
-                type={showPassword ? "text" : "password"}
-                required
-                minLength={6}
-                placeholder="Minimal 6 karakter"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="block w-full rounded-xl border border-slate-200 pl-10 pr-10 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition duration-150"
-              />
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                className="block text-xs font-semibold text-slate-700"
+                htmlFor="reset-new-password"
+              >
+                Kata Sandi Baru
+              </label>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600"
+                className="text-[11px] font-medium text-slate-500 hover:text-slate-800 cursor-pointer transition"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? "Sembunyikan" : "Tampilkan"}
               </button>
             </div>
+            <input
+              id="reset-new-password"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={6}
+              placeholder="Minimal 6 karakter"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition shadow-xs"
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5" htmlFor="reset-confirm-password">
+            <label
+              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              htmlFor="reset-confirm-password"
+            >
               Konfirmasi Kata Sandi Baru
             </label>
-            <div className="relative rounded-xl shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                <Lock className="h-4 w-4" />
-              </div>
-              <input
-                id="reset-confirm-password"
-                type={showPassword ? "text" : "password"}
-                required
-                minLength={6}
-                placeholder="Ulangi kata sandi baru"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="block w-full rounded-xl border border-slate-200 pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition duration-150"
-              />
-            </div>
+            <input
+              id="reset-confirm-password"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={6}
+              placeholder="Ulangi kata sandi baru"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition shadow-xs"
+            />
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 space-y-2.5">
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-[0.99] text-white text-sm font-semibold tracking-wide shadow-lg shadow-indigo-600/20 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 active:bg-black text-white text-sm font-semibold tracking-normal shadow-sm transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  <span>Memperbarui Sandi...</span>
+                  <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Menyimpan Sandi...</span>
                 </>
               ) : (
-                <>
-                  <span>Simpan Kata Sandi Baru</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                <span>Simpan Kata Sandi Baru</span>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setStep("request")}
+              className="w-full text-center text-xs text-slate-500 hover:text-slate-800 font-medium py-1.5 transition cursor-pointer"
+            >
+              Kembali ke Langkah Sebelumnya
             </button>
           </div>
         </form>
@@ -355,14 +351,13 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
       {/* STEP 3: Success Screen */}
       {step === "done" && (
-        <div className="text-center py-4 space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10 animate-in zoom-in duration-300">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
-          <div>
-            <h4 className="text-base font-bold text-slate-900">Berhasil Diperbarui!</h4>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-              Kata sandi Anda telah berhasil diubah. Silakan masuk kembali dengan kata sandi baru.
+        <div className="py-2 space-y-4">
+          <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200/80">
+            <span className="inline-block text-[11px] font-bold tracking-wider uppercase text-emerald-700 mb-1">
+              Pembaruan Berhasil
+            </span>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Kata sandi akun Anda telah berhasil diubah. Silakan masuk kembali menggunakan kata sandi baru Anda.
             </p>
           </div>
 
@@ -373,10 +368,9 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                 onSuccessLogin(email);
               }
             }}
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-sm font-semibold tracking-wide shadow-lg shadow-slate-900/15 transition-all"
+            className="w-full flex items-center justify-center px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 active:bg-black text-white text-sm font-semibold tracking-normal shadow-sm transition-all duration-150 cursor-pointer"
           >
-            <span>Masuk Sekarang</span>
-            <ArrowRight className="w-4 h-4" />
+            Masuk Sekarang
           </button>
         </div>
       )}
