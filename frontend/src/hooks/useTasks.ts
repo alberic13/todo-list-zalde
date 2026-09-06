@@ -57,14 +57,10 @@ export function useTasks() {
         fetchedTasks = await taskService.list(activeFilters);
       }
 
-      const [fetchedStats, fetchedCategories] = await Promise.all([
-        taskService.getStats(),
-        categoryService.list(),
-      ]);
+      const fetchedStats = await taskService.getStats();
 
       setTasks(fetchedTasks);
       setStats(fetchedStats);
-      setCategories(fetchedCategories);
     } catch (err: any) {
       console.error("Error loading tasks:", err);
       setError(err.message || "Failed to load tasks");
@@ -82,9 +78,28 @@ export function useTasks() {
     isSemanticSearch,
   ]);
 
+  // ponytail: decoupled category fetching so filter clicks never re-query categories table. upgrade to SWR/TanStack Query if multi-tab sync is needed.
+  const loadCategories = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const fetchedCategories = await categoryService.list();
+      setCategories(fetchedCategories);
+    } catch (err) {
+      console.error("Error loading categories:", err);
+    }
+  }, [isAuthenticated]);
+
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([loadTasks(), loadCategories()]);
+  }, [loadTasks, loadCategories]);
 
   const toggleSemanticSearch = () => {
     setIsSemanticSearch((prev) => !prev);
@@ -202,7 +217,7 @@ export function useTasks() {
     error,
     filters,
     setFilters,
-    refresh: loadTasks,
+    refresh: refreshAll,
     createTask,
     updateTask,
     updateStatus,
