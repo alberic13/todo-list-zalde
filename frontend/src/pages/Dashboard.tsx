@@ -10,6 +10,7 @@ import { SettingsModal } from "../components/layout/SettingsModal";
 const AiChatDrawer = lazy(() => import("../components/ai/AiChatDrawer").then(m => ({ default: m.AiChatDrawer })));
 import { Skeleton } from "../components/ui/Skeleton";
 import { Task, TaskStatus } from "../types";
+import { CreateTaskPayload, UpdateTaskPayload } from "../services/taskService";
 import { Bot, AlertCircle, RefreshCw } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
@@ -52,11 +53,11 @@ export const Dashboard: React.FC = () => {
     setIsModalOpen(true);
   }, []);
 
-  const handleModalSubmit = async (payload: any) => {
+  const handleModalSubmit = async (payload: CreateTaskPayload | UpdateTaskPayload) => {
     if (taskToEdit) {
-      await updateTask(taskToEdit.id, payload);
+      await updateTask(taskToEdit.id, payload as UpdateTaskPayload);
     } else {
-      await createTask(payload);
+      await createTask(payload as CreateTaskPayload);
     }
   };
 

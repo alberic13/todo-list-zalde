@@ -165,7 +165,8 @@ export class TaskService {
       .returning();
 
     if (updated) {
-      await EmbeddingService.syncTaskEmbedding(id, userId).catch(console.error);
+      // ponytail: non-blocking embedding sync to keep Kanban drag-drop instant. upgrade to background queue if serverless execution freeze drops tasks.
+      EmbeddingService.syncTaskEmbedding(id, userId).catch(console.error);
     }
 
     return updated ? await this.getById(id, userId) : null;

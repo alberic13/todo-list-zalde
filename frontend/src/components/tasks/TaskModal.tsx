@@ -12,6 +12,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { calendarService } from "../../services/calendarService";
+import { CreateTaskPayload, UpdateTaskPayload } from "../../services/taskService";
 
 export interface TaskModalProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ export interface TaskModalProps {
   taskToEdit?: Task | null;
   defaultStatus?: TaskStatus;
   categories: Category[];
-  onSubmit: (payload: any) => Promise<void>;
+  onSubmit: (payload: CreateTaskPayload | UpdateTaskPayload) => Promise<void>;
   onAddCategory: (name: string, colorHex?: string) => Promise<Category>;
   onDeleteCategory?: (id: string) => Promise<void>;
   onToggleSubtask?: (subtaskId: string, taskId: string) => Promise<void> | void;
