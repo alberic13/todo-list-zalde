@@ -315,17 +315,37 @@ export class AuthService {
       throw new Error("GOOGLE_CLIENT_ID is not configured");
     }
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    let email: string;
+    let name: string;
 
-    const payload = ticket.getPayload();
-    if (!payload || !payload.email) {
-      throw new Error("Invalid Google token payload");
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+      if (!payload || !payload.email) {
+        throw new Error("Invalid Google token payload");
+      }
+      email = payload.email.toLowerCase().trim();
+      name = payload.name || "Google User";
+    } catch {
+      // Fallback: Verifikasi via Google OAuth2 userinfo endpoint (jika access_token)
+      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        throw new Error("Token Google tidak valid");
+      }
+      const data = (await res.json()) as { email?: string; name?: string };
+      if (!data.email) {
+        throw new Error("Email Google tidak ditemukan");
+      }
+      email = data.email.toLowerCase().trim();
+      name = data.name || "Google User";
     }
 
-    const email = payload.email.toLowerCase().trim();
     let user = await this.findByEmail(email);
 
     if (!user) {
@@ -339,7 +359,7 @@ export class AuthService {
       const [newUser] = await db
         .insert(users)
         .values({
-          name: payload.name || "Google User",
+          name: name || "Google User",
           email,
           passwordHash,
           isVerified: true, // Google accounts are verified by default
