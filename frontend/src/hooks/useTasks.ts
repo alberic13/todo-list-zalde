@@ -23,18 +23,38 @@ export function useTasks() {
     sortOrder: "desc",
   });
 
+  // ponytail: 350ms native debounce to conserve Gemini AI quota and prevent UI flickering. upgrade to AbortController signal if backend latency spikes.
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search || "");
+
+  useEffect(() => {
+    if (!filters.search) {
+      setDebouncedSearch("");
+      return;
+    }
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search || "");
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
   const loadTasks = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
       setIsLoading(true);
       setError(null);
 
+      const activeFilters: TaskFilters = {
+        ...filters,
+        search: debouncedSearch,
+      };
+
       // Check if semantic search is active with a query
       let fetchedTasks: Task[] = [];
-      if (isSemanticSearch && filters.search && filters.search.trim()) {
-        fetchedTasks = await aiService.search(filters.search.trim());
+      if (isSemanticSearch && debouncedSearch && debouncedSearch.trim()) {
+        fetchedTasks = await aiService.search(debouncedSearch.trim());
       } else {
-        fetchedTasks = await taskService.list(filters);
+        fetchedTasks = await taskService.list(activeFilters);
       }
 
       const [fetchedStats, fetchedCategories] = await Promise.all([
@@ -51,7 +71,16 @@ export function useTasks() {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, filters, isSemanticSearch]);
+  }, [
+    isAuthenticated,
+    filters.status,
+    filters.priority,
+    filters.categoryId,
+    filters.sortBy,
+    filters.sortOrder,
+    debouncedSearch,
+    isSemanticSearch,
+  ]);
 
   useEffect(() => {
     loadTasks();
