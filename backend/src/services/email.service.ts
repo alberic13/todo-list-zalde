@@ -267,7 +267,7 @@ export class EmailService {
   }
 
   /**
-   * Daily Task Reminder Email (Triggered by 12 AM WIB Cron)
+   * Daily Task Reminder Email (Triggered by 12 AM WIB Cron, covers Due Today, Overdue, and H-3 Upcoming)
    */
   static async sendDailyTaskReminderEmail({
     to,
@@ -275,6 +275,7 @@ export class EmailService {
     dateFormatted,
     dueTodayTasks,
     overdueTasks,
+    upcomingTasks = [],
   }: {
     to: string;
     name: string;
@@ -299,9 +300,20 @@ export class EmailService {
       completedSubtasks?: number;
       totalSubtasks?: number;
     }>;
+    upcomingTasks?: Array<{
+      id: string;
+      title: string;
+      priority: string;
+      categoryName?: string | null;
+      categoryColor?: string | null;
+      dueDateFormatted?: string | null;
+      daysRemaining?: number;
+      completedSubtasks?: number;
+      totalSubtasks?: number;
+    }>;
   }) {
-    const totalPending = dueTodayTasks.length + overdueTasks.length;
-    const subject = `📋 Agenda Tugas Hari Ini: ${totalPending} Tugas Menunggu (${dateFormatted}) - Zalde Todo`;
+    const totalPending = dueTodayTasks.length + overdueTasks.length + upcomingTasks.length;
+    const subject = `📋 Agenda Tugas: ${totalPending} Tugas Memerlukan Perhatian (${dateFormatted}) - Zalde Todo`;
 
     const renderPriorityBadge = (p: string) => {
       switch (p) {
@@ -316,7 +328,10 @@ export class EmailService {
       }
     };
 
-    const renderTaskRows = (taskList: typeof dueTodayTasks, isOverdueList = false) => {
+    const renderTaskRows = (
+      taskList: typeof dueTodayTasks | typeof upcomingTasks,
+      variant: "overdue" | "today" | "upcoming" = "today"
+    ) => {
       if (taskList.length === 0) return "";
       return taskList
         .map((t) => {
@@ -327,9 +342,20 @@ export class EmailService {
             t.totalSubtasks && t.totalSubtasks > 0
               ? `<span style="display:inline-block; font-size:10px; font-weight:600; color:#94a3b8; margin-left:6px;">☑ ${t.completedSubtasks || 0}/${t.totalSubtasks}</span>`
               : "";
-          const borderStyle = isOverdueList
-            ? "border-left: 3px solid #ef4444; background: rgba(239, 68, 68, 0.05);"
-            : "border-left: 3px solid #6366f1; background: rgba(255, 255, 255, 0.02);";
+
+          let borderStyle = "border-left: 3px solid #6366f1; background: rgba(255, 255, 255, 0.02);";
+          let badgeHtml = "";
+
+          if (variant === "overdue") {
+            borderStyle = "border-left: 3px solid #ef4444; background: rgba(239, 68, 68, 0.05);";
+          } else if (variant === "upcoming") {
+            borderStyle = "border-left: 3px solid #f59e0b; background: rgba(245, 158, 11, 0.04);";
+            const days = (t as any).daysRemaining;
+            if (days) {
+              const label = days === 1 ? "⏳ Besok (H-1)" : `⏳ H-${days}`;
+              badgeHtml = `<span style="display:inline-block; font-size:10px; font-weight:700; color:#f59e0b; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.25); border-radius:6px; padding:2px 7px; margin-left:6px;">${label}</span>`;
+            }
+          }
 
           return `
             <div style="border: 1px solid rgba(255, 255, 255, 0.08); ${borderStyle} border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;">
@@ -338,6 +364,7 @@ export class EmailService {
               </div>
               <div style="font-size: 11px;">
                 ${renderPriorityBadge(t.priority)}
+                ${badgeHtml}
                 ${catHtml}
                 ${subtaskHtml}
                 ${t.dueDateFormatted ? `<span style="color:#94a3b8; font-size:10px; margin-left:6px;">📅 ${t.dueDateFormatted}</span>` : ""}
@@ -393,7 +420,7 @@ export class EmailService {
                 Agenda Hari Ini (${dateFormatted})
               </h1>
               <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0 0 20px 0; text-align: center;">
-                Halo <strong style="color: #f8fafc;">${name}</strong>, berikut rangkuman tugas yang memerlukan perhatian Anda hari ini agar produktivitas tetap terjaga:
+                Halo <strong style="color: #f8fafc;">${name}</strong>, berikut rangkuman tugas yang memerlukan perhatian Anda agar produktivitas tetap terjaga:
               </p>
 
               <!-- Statistics Pills Bar -->
@@ -402,14 +429,19 @@ export class EmailService {
                   <td align="center">
                     <table role="presentation" border="0" cellspacing="0" cellpadding="0">
                       <tr>
-                        <td style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 10px 18px; text-align: center; margin-right: 8px;">
-                          <div style="font-size: 11px; color: #818cf8; font-weight: 600; text-transform: uppercase;">Jatuh Tempo Hari Ini</div>
-                          <div style="font-size: 20px; font-weight: 800; color: #ffffff; margin-top: 2px;">${dueTodayTasks.length}</div>
+                        <td style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 10px 14px; text-align: center;">
+                          <div style="font-size: 10px; color: #818cf8; font-weight: 600; text-transform: uppercase;">Hari Ini</div>
+                          <div style="font-size: 18px; font-weight: 800; color: #ffffff; margin-top: 2px;">${dueTodayTasks.length}</div>
                         </td>
-                        <td style="width: 12px;"></td>
-                        <td style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 10px 18px; text-align: center;">
-                          <div style="font-size: 11px; color: #f87171; font-weight: 600; text-transform: uppercase;">Perlu Segera / Overdue</div>
-                          <div style="font-size: 20px; font-weight: 800; color: #ffffff; margin-top: 2px;">${overdueTasks.length}</div>
+                        <td style="width: 8px;"></td>
+                        <td style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 10px 14px; text-align: center;">
+                          <div style="font-size: 10px; color: #f87171; font-weight: 600; text-transform: uppercase;">Overdue</div>
+                          <div style="font-size: 18px; font-weight: 800; color: #ffffff; margin-top: 2px;">${overdueTasks.length}</div>
+                        </td>
+                        <td style="width: 8px;"></td>
+                        <td style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 10px 14px; text-align: center;">
+                          <div style="font-size: 10px; color: #fbbf24; font-weight: 600; text-transform: uppercase;">H-3 Menjelang</div>
+                          <div style="font-size: 18px; font-weight: 800; color: #ffffff; margin-top: 2px;">${upcomingTasks.length}</div>
                         </td>
                       </tr>
                     </table>
@@ -425,13 +457,13 @@ export class EmailService {
                   <div style="color: #f87171; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
                     ⚠️ Tugas Terlambat (${overdueTasks.length})
                   </div>
-                  ${renderTaskRows(overdueTasks, true)}
+                  ${renderTaskRows(overdueTasks, "overdue")}
                 </div>
               `
                   : ""
               }
 
-              <!-- Section 2: Tasks Due Today -->
+              <!-- Section 2: Tasks Due Today (if any) -->
               ${
                 dueTodayTasks.length > 0
                   ? `
@@ -439,7 +471,21 @@ export class EmailService {
                   <div style="color: #818cf8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
                     🎯 Target Selesai Hari Ini (${dueTodayTasks.length})
                   </div>
-                  ${renderTaskRows(dueTodayTasks, false)}
+                  ${renderTaskRows(dueTodayTasks, "today")}
+                </div>
+              `
+                  : ""
+              }
+
+              <!-- Section 3: Tasks Due Within 3 Days (H-3 Upcoming) -->
+              ${
+                upcomingTasks.length > 0
+                  ? `
+                <div style="margin-bottom: 24px;">
+                  <div style="color: #fbbf24; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+                    ⏰ Mendekati Batas Waktu H-3 (${upcomingTasks.length})
+                  </div>
+                  ${renderTaskRows(upcomingTasks, "upcoming")}
                 </div>
               `
                   : ""

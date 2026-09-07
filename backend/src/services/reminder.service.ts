@@ -9,16 +9,21 @@ export interface DailyReminderSummary {
   totalEmailsSent: number;
   totalDueTodayTasks: number;
   totalOverdueTasks: number;
+  totalUpcomingTasks: number;
   errors: Array<{ userId: string; email: string; error: string }>;
 }
 
 export class ReminderService {
   /**
-   * Calculate start and end UTC timestamps corresponding to the current date in Asia/Jakarta (WIB = UTC+7)
+   * Calculate start, end, and 3-days-ahead (H-3) UTC timestamps corresponding to Asia/Jakarta (WIB = UTC+7)
    */
   static getJakartaDateBounds(referenceDate = new Date()): {
     startOfJakartaDay: Date;
     endOfJakartaDay: Date;
+    endOfH3JakartaDay: Date;
+    year: number;
+    month: number;
+    day: number;
     jakartaDateStr: string;
     dateFormatted: string;
   } {
@@ -33,13 +38,17 @@ export class ReminderService {
     const [year, month, day] = jakartaDateStr.split("-").map(Number);
 
     // Asia/Jakarta is strictly UTC+7 without DST (UTC = WIB - 7 hours)
-    // 00:00:00.000 WIB
+    // 00:00:00.000 WIB today
     const startOfJakartaDay = new Date(
       Date.UTC(year, month - 1, day, 0, 0, 0, 0) - 7 * 60 * 60 * 1000
     );
-    // 23:59:59.999 WIB
+    // 23:59:59.999 WIB today
     const endOfJakartaDay = new Date(
       Date.UTC(year, month - 1, day, 23, 59, 59, 999) - 7 * 60 * 60 * 1000
+    );
+    // 23:59:59.999 WIB 3 days later (H-3 window)
+    const endOfH3JakartaDay = new Date(
+      Date.UTC(year, month - 1, day + 3, 23, 59, 59, 999) - 7 * 60 * 60 * 1000
     );
 
     const dateFormatted = new Intl.DateTimeFormat("id-ID", {
@@ -53,27 +62,39 @@ export class ReminderService {
     return {
       startOfJakartaDay,
       endOfJakartaDay,
+      endOfH3JakartaDay,
+      year,
+      month,
+      day,
       jakartaDateStr,
       dateFormatted,
     };
   }
 
   /**
-   * Main cron job processor to scan and dispatch daily task reminder emails
+   * Main cron job processor to scan and dispatch daily task reminder emails (Due Today, Overdue, H-3 Upcoming)
    */
   static async processDailyReminders(referenceDate = new Date()): Promise<DailyReminderSummary> {
-    const { startOfJakartaDay, endOfJakartaDay, jakartaDateStr, dateFormatted } =
-      this.getJakartaDateBounds(referenceDate);
+    const {
+      startOfJakartaDay,
+      endOfJakartaDay,
+      endOfH3JakartaDay,
+      year,
+      month,
+      day,
+      jakartaDateStr,
+      dateFormatted,
+    } = this.getJakartaDateBounds(referenceDate);
 
     console.log(`[Cron Daily Reminder] Starting for date: ${jakartaDateStr} (${dateFormatted})`);
-    console.log(`[Cron Daily Reminder] Bounds UTC: ${startOfJakartaDay.toISOString()} -> ${endOfJakartaDay.toISOString()}`);
+    console.log(`[Cron Daily Reminder] Window UTC: ${startOfJakartaDay.toISOString()} -> ${endOfH3JakartaDay.toISOString()}`);
 
-    // Query all uncompleted tasks that have a dueDate up to end of today in Jakarta
+    // Query uncompleted tasks with dueDate up to 3 days ahead in Jakarta (including overdue)
     const pendingTasks = await db.query.tasks.findMany({
       where: and(
         ne(tasks.status, "done"),
         isNotNull(tasks.dueDate),
-        lte(tasks.dueDate, endOfJakartaDay)
+        lte(tasks.dueDate, endOfH3JakartaDay)
       ),
       with: {
         category: true,
@@ -83,7 +104,7 @@ export class ReminderService {
       orderBy: [asc(tasks.dueDate), desc(tasks.priority)],
     });
 
-    console.log(`[Cron Daily Reminder] Found ${pendingTasks.length} candidate tasks needing attention.`);
+    console.log(`[Cron Daily Reminder] Found ${pendingTasks.length} candidate tasks within H-3 window.`);
 
     // Group tasks by user
     const userGroups = new Map<
@@ -110,6 +131,17 @@ export class ReminderService {
           completedSubtasks: number;
           totalSubtasks: number;
         }>;
+        upcomingTasks: Array<{
+          id: string;
+          title: string;
+          priority: string;
+          categoryName?: string | null;
+          categoryColor?: string | null;
+          dueDateFormatted?: string | null;
+          daysRemaining: number;
+          completedSubtasks: number;
+          totalSubtasks: number;
+        }>;
       }
     >();
 
@@ -131,6 +163,7 @@ export class ReminderService {
           },
           dueTodayTasks: [],
           overdueTasks: [],
+          upcomingTasks: [],
         });
       }
 
@@ -138,25 +171,52 @@ export class ReminderService {
       const dueDate = new Date(t.dueDate!);
       const isDueToday = dueDate >= startOfJakartaDay && dueDate <= endOfJakartaDay;
       const isOverdue = dueDate < startOfJakartaDay;
+      const isUpcoming = dueDate > endOfJakartaDay && dueDate <= endOfH3JakartaDay;
 
       const completedSubtasks = (t.subtasks || []).filter((s) => s.isCompleted).length;
       const totalSubtasks = (t.subtasks || []).length;
 
-      const item = {
+      const baseItem = {
         id: t.id,
         title: t.title,
         priority: t.priority,
         categoryName: t.category?.name || null,
         categoryColor: t.category?.colorHex || null,
-        dueDateFormatted: isDueToday ? "Hari Ini" : taskDateFormatter.format(dueDate),
         completedSubtasks,
         totalSubtasks,
       };
 
       if (isDueToday) {
-        group.dueTodayTasks.push(item);
+        group.dueTodayTasks.push({
+          ...baseItem,
+          dueDateFormatted: "Hari Ini",
+        });
       } else if (isOverdue) {
-        group.overdueTasks.push(item);
+        group.overdueTasks.push({
+          ...baseItem,
+          dueDateFormatted: taskDateFormatter.format(dueDate),
+        });
+      } else if (isUpcoming) {
+        const taskDateJakartaStr = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Jakarta",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(dueDate);
+
+        const [tYear, tMonth, tDay] = taskDateJakartaStr.split("-").map(Number);
+        const todayUtc = Date.UTC(year, month - 1, day);
+        const taskUtc = Date.UTC(tYear, tMonth - 1, tDay);
+        const diffDays = Math.round((taskUtc - todayUtc) / (24 * 60 * 60 * 1000));
+        const daysRemaining = Math.max(1, diffDays);
+
+        group.upcomingTasks.push({
+          ...baseItem,
+          dueDateFormatted: `${taskDateFormatter.format(dueDate)} (${
+            daysRemaining === 1 ? "Besok / H-1" : `H-${daysRemaining}`
+          })`,
+          daysRemaining,
+        });
       }
     }
 
@@ -166,17 +226,23 @@ export class ReminderService {
       totalEmailsSent: 0,
       totalDueTodayTasks: 0,
       totalOverdueTasks: 0,
+      totalUpcomingTasks: 0,
       errors: [],
     };
 
     // Dispatch email to each eligible user
     for (const [userId, group] of userGroups) {
-      if (group.dueTodayTasks.length === 0 && group.overdueTasks.length === 0) {
+      if (
+        group.dueTodayTasks.length === 0 &&
+        group.overdueTasks.length === 0 &&
+        group.upcomingTasks.length === 0
+      ) {
         continue;
       }
 
       summary.totalDueTodayTasks += group.dueTodayTasks.length;
       summary.totalOverdueTasks += group.overdueTasks.length;
+      summary.totalUpcomingTasks += group.upcomingTasks.length;
 
       try {
         await EmailService.sendDailyTaskReminderEmail({
@@ -185,10 +251,13 @@ export class ReminderService {
           dateFormatted,
           dueTodayTasks: group.dueTodayTasks,
           overdueTasks: group.overdueTasks,
+          upcomingTasks: group.upcomingTasks,
         });
 
         summary.totalEmailsSent++;
-        console.log(`[Cron Daily Reminder] Email dispatched to ${group.user.email} (${group.dueTodayTasks.length} today, ${group.overdueTasks.length} overdue)`);
+        console.log(
+          `[Cron Daily Reminder] Email dispatched to ${group.user.email} (${group.dueTodayTasks.length} today, ${group.overdueTasks.length} overdue, ${group.upcomingTasks.length} H-3)`
+        );
       } catch (err: any) {
         console.error(`[Cron Daily Reminder] Failed to send to ${group.user.email}:`, err);
         summary.errors.push({

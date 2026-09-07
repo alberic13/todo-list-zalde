@@ -97,6 +97,15 @@ describe("Cron Daily Task Reminder (00:00 WIB / 17:00 UTC)", () => {
       dueDate: new Date(bounds.startOfJakartaDay.getTime() - 24 * 3600 * 1000), // yesterday
     });
 
+    // Task 3: Upcoming H-2 (2 days ahead)
+    await db.insert(tasks).values({
+      userId: testUserId,
+      title: "Tugas Deadline H-2",
+      status: "todo",
+      priority: "medium",
+      dueDate: new Date(bounds.startOfJakartaDay.getTime() + 48 * 3600 * 1000), // +48h
+    });
+
     // 2. Call endpoint with valid Authorization
     const res = await app.handle(
       new Request("http://localhost:3001/api/cron/daily-reminder", {
@@ -114,5 +123,6 @@ describe("Cron Daily Task Reminder (00:00 WIB / 17:00 UTC)", () => {
     expect(data.data.totalEmailsSent).toBeGreaterThanOrEqual(1);
     expect(data.data.totalDueTodayTasks).toBeGreaterThanOrEqual(1);
     expect(data.data.totalOverdueTasks).toBeGreaterThanOrEqual(1);
+    expect(data.data.totalUpcomingTasks).toBeGreaterThanOrEqual(1);
   }, 20000);
 });
