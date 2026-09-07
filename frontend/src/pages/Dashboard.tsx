@@ -12,7 +12,8 @@ const AiChatDrawer = lazy(() => import("../components/ai/AiChatDrawer").then(m =
 import { Skeleton } from "../components/ui/Skeleton";
 import { Task, TaskStatus } from "../types";
 import { CreateTaskPayload, UpdateTaskPayload } from "../services/taskService";
-import { Bot, AlertCircle, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Bot } from "lucide-react";
+import { DashboardAlerts } from "../components/layout/DashboardAlerts";
 
 export const Dashboard: React.FC = () => {
   const {
@@ -120,6 +121,13 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const activeTaskToEdit = taskToEdit
+    ? tasks.find((t) => t.id === taskToEdit.id) || taskToEdit
+    : null;
+  const activeTaskForChat = selectedTaskForChat
+    ? tasks.find((t) => t.id === selectedTaskForChat.id) || selectedTaskForChat
+    : null;
+
   return (
     <div className="min-h-screen text-slate-800 flex flex-col selection:bg-slate-900 selection:text-white pb-20">
       {/* Navbar with Semantic Search toggle */}
@@ -133,68 +141,18 @@ export const Dashboard: React.FC = () => {
 
       {/* Main Workspace Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Join Notification Alert */}
-        {joinNotification && (
-          <div
-            className={`p-4 rounded-3xl border text-xs flex items-center justify-between gap-3 animate-in fade-in shadow-sm ${
-              joinNotification.success
-                ? "bg-emerald-50/90 border-emerald-200 text-emerald-800"
-                : "bg-rose-50/90 border-rose-200 text-rose-800"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {joinNotification.success ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              )}
-              <span>{joinNotification.message}</span>
-            </div>
-            <button
-              onClick={() => setJoinNotification(null)}
-              className="text-xs font-bold underline opacity-70 hover:opacity-100 shrink-0 cursor-pointer"
-            >
-              Tutup
-            </button>
-          </div>
-        )}
+        {/* Alerts & Notifications */}
+        <DashboardAlerts
+          joinNotification={joinNotification}
+          onCloseJoinNotification={() => setJoinNotification(null)}
+          isSemanticSearch={isSemanticSearch}
+          onToggleSemanticSearch={toggleSemanticSearch}
+          error={error}
+          onRetry={refresh}
+        />
 
         {/* Productivity Stat Cards */}
         <StatOverview stats={stats} />
-
-        {/* Semantic Search Banner Info if active */}
-        {isSemanticSearch && (
-          <div className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 card-shadow flex items-center justify-between gap-3 text-xs animate-in fade-in duration-200">
-            <div className="flex items-center gap-2.5">
-              <p className="text-slate-800 font-medium">
-                Mode <strong className="font-bold text-slate-900">AI Search</strong> aktif: Hasil diurutkan berdasarkan makna & relevansi.
-              </p>
-            </div>
-            <button
-              onClick={toggleSemanticSearch}
-              className="text-[11px] text-indigo-600 hover:text-indigo-900 underline font-bold shrink-0"
-            >
-              Kembali ke Keyword
-            </button>
-          </div>
-        )}
-
-        {/* Error Alert Banner */}
-        {error && (
-          <div className="p-4 rounded-3xl bg-rose-50/90 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-3 animate-in fade-in shadow-sm">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span><strong className="font-bold">Kendala Server:</strong> {error}</span>
-            </div>
-            <button
-              onClick={() => refresh()}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition-all shrink-0 shadow-sm"
-            >
-              <RefreshCw className="w-3 h-3" />
-              Coba Lagi
-            </button>
-          </div>
-        )}
 
         {/* Filter Bar & Controls */}
         <div className="pt-2">
@@ -244,7 +202,7 @@ export const Dashboard: React.FC = () => {
       <TaskModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        taskToEdit={taskToEdit}
+        taskToEdit={activeTaskToEdit}
         defaultStatus={defaultModalStatus}
         categories={categories}
         onSubmit={handleModalSubmit}
@@ -292,7 +250,7 @@ export const Dashboard: React.FC = () => {
           onOpenTaskModal={handleEditTask}
           activeTab={chatDrawerTab}
           onTabChange={setChatDrawerTab}
-          activeTaskForChat={selectedTaskForChat}
+          activeTaskForChat={activeTaskForChat}
           tasks={tasks}
           onSelectTaskForChat={setSelectedTaskForChat}
         />

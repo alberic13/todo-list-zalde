@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Task, TaskPriority, TaskStatus } from "../../../types";
 import { CreateTaskPayload, UpdateTaskPayload } from "../../../services/taskService";
 import { LocalSubtaskItem } from "./TaskSubtasksSection";
@@ -34,26 +34,42 @@ export function useTaskModalForm({
   const [subtasks, setSubtasks] = useState<LocalSubtaskItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (taskToEdit) {
-      setTitle(taskToEdit.title || "");
-      setDescription(taskToEdit.description || "");
-      setStatus(taskToEdit.status || defaultStatus || "todo");
-      setPriority(taskToEdit.priority || "medium");
-      setCategoryId(taskToEdit.categoryId || "");
+  const prevTaskIdRef = useRef<string | null>(null);
+  const prevIsOpenRef = useRef<boolean>(false);
 
-      let safeDate = "";
-      if (taskToEdit.dueDate) {
-        try {
-          const d = new Date(taskToEdit.dueDate);
-          if (!isNaN(d.getTime())) {
-            safeDate = d.toISOString().split("T")[0];
+  useEffect(() => {
+    if (!isOpen) {
+      prevIsOpenRef.current = false;
+      prevTaskIdRef.current = null;
+      return;
+    }
+
+    const isNewlyOpened = !prevIsOpenRef.current && isOpen;
+    const isDifferentTask = taskToEdit?.id !== prevTaskIdRef.current;
+    prevIsOpenRef.current = isOpen;
+    prevTaskIdRef.current = taskToEdit?.id || null;
+
+    if (taskToEdit) {
+      if (isNewlyOpened || isDifferentTask) {
+        setTitle(taskToEdit.title || "");
+        setDescription(taskToEdit.description || "");
+        setStatus(taskToEdit.status || defaultStatus || "todo");
+        setPriority(taskToEdit.priority || "medium");
+        setCategoryId(taskToEdit.categoryId || "");
+
+        let safeDate = "";
+        if (taskToEdit.dueDate) {
+          try {
+            const d = new Date(taskToEdit.dueDate);
+            if (!isNaN(d.getTime())) {
+              safeDate = d.toISOString().split("T")[0];
+            }
+          } catch {
+            safeDate = "";
           }
-        } catch {
-          safeDate = "";
         }
+        setDueDate(safeDate);
       }
-      setDueDate(safeDate);
 
       const raw = taskToEdit.subtasks || [];
       if (Array.isArray(raw)) {

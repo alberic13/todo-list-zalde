@@ -138,6 +138,46 @@ describe("Task Collaboration & Discussion Chat Flow", () => {
     expect(statusData.data.status).toBe("in_progress");
   }, 15000);
 
+  it("should sync subtask checklist toggle between User B (collaborator) and User A (owner)", async () => {
+    // 1. User B gets task to find subtask ID
+    const getTaskRes = await app.handle(
+      new Request(`http://localhost:3001/api/tasks/${taskId}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${tokenB}` },
+      })
+    );
+    expect(getTaskRes.status).toBe(200);
+    const taskDetails: any = await getTaskRes.json();
+    expect(taskDetails.data.subtasks.length).toBe(2);
+    const subtask = taskDetails.data.subtasks[0];
+    expect(subtask.isCompleted).toBe(false);
+
+    // 2. User B toggles subtask to completed
+    const toggleRes = await app.handle(
+      new Request(`http://localhost:3001/api/subtasks/${subtask.id}/toggle`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${tokenB}` },
+      })
+    );
+    expect(toggleRes.status).toBe(200);
+    const toggleData: any = await toggleRes.json();
+    expect(toggleData.success).toBe(true);
+    expect(toggleData.data.isCompleted).toBe(true);
+
+    // 3. User A (Owner) fetches task and sees updated subtask checklist
+    const ownerTaskRes = await app.handle(
+      new Request(`http://localhost:3001/api/tasks/${taskId}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${tokenA}` },
+      })
+    );
+    expect(ownerTaskRes.status).toBe(200);
+    const ownerTaskData: any = await ownerTaskRes.json();
+    const updatedSubtask = ownerTaskData.data.subtasks.find((s: any) => s.id === subtask.id);
+    expect(updatedSubtask).toBeDefined();
+    expect(updatedSubtask.isCompleted).toBe(true);
+  }, 15000);
+
   it("should list all collaborators correctly", async () => {
     const collabRes = await app.handle(
       new Request(`http://localhost:3001/api/tasks/${taskId}/collaborators`, {

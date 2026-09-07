@@ -1,18 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
-import { Task, TaskStats, Category, TaskFilters } from "../types";
+import { Task, TaskStats, TaskFilters } from "../types";
 import { taskService, CreateTaskPayload, UpdateTaskPayload } from "../services/taskService";
-import { categoryService } from "../services/categoryService";
 import { aiService } from "../services/aiService";
 import { useAuth } from "./useAuth";
+import { useTaskSync } from "./useTaskSync";
+import { useCategories } from "./useCategories";
 
 export function useTasks() {
   const { isAuthenticated } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<TaskStats | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSemanticSearch, setIsSemanticSearch] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    categories,
+    loadCategories,
+    createCategory,
+    deleteCategory,
+  } = useCategories(isAuthenticated);
 
   const [filters, setFilters] = useState<TaskFilters>({
     status: "all",
@@ -38,27 +45,34 @@ export function useTasks() {
     return () => clearTimeout(timer);
   }, [filters.search]);
 
+  // Shared fetcher for tasks & stats
+  const fetchTasksData = useCallback(async () => {
+    const activeFilters: TaskFilters = {
+      ...filters,
+      search: debouncedSearch,
+    };
+
+    let fetchedTasks: Task[] = [];
+    if (isSemanticSearch && debouncedSearch && debouncedSearch.trim()) {
+      fetchedTasks = await aiService.search(debouncedSearch.trim());
+    } else {
+      fetchedTasks = await taskService.list(activeFilters);
+    }
+
+    const fetchedStats = await taskService.getStats();
+    return { fetchedTasks, fetchedStats };
+  }, [
+    filters,
+    debouncedSearch,
+    isSemanticSearch,
+  ]);
+
   const loadTasks = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
       setIsLoading(true);
       setError(null);
-
-      const activeFilters: TaskFilters = {
-        ...filters,
-        search: debouncedSearch,
-      };
-
-      // Check if semantic search is active with a query
-      let fetchedTasks: Task[] = [];
-      if (isSemanticSearch && debouncedSearch && debouncedSearch.trim()) {
-        fetchedTasks = await aiService.search(debouncedSearch.trim());
-      } else {
-        fetchedTasks = await taskService.list(activeFilters);
-      }
-
-      const fetchedStats = await taskService.getStats();
-
+      const { fetchedTasks, fetchedStats } = await fetchTasksData();
       setTasks(fetchedTasks);
       setStats(fetchedStats);
     } catch (err: any) {
@@ -67,35 +81,55 @@ export function useTasks() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    isAuthenticated,
-    filters.status,
-    filters.priority,
-    filters.categoryId,
-    filters.sortBy,
-    filters.sortOrder,
-    debouncedSearch,
-    isSemanticSearch,
-  ]);
+  }, [isAuthenticated, fetchTasksData]);
 
-  // ponytail: decoupled category fetching so filter clicks never re-query categories table. upgrade to SWR/TanStack Query if multi-tab sync is needed.
-  const loadCategories = useCallback(async () => {
+  const silentSyncTasks = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
-      const fetchedCategories = await categoryService.list();
-      setCategories(fetchedCategories);
-    } catch (err) {
-      console.error("Error loading categories:", err);
+      const { fetchedTasks, fetchedStats } = await fetchTasksData();
+
+      setTasks((prev) => {
+        if (prev.length !== fetchedTasks.length) return fetchedTasks;
+        const hasChange = prev.some((pt, i) => {
+          const ft = fetchedTasks[i];
+          if (!ft || pt.id !== ft.id || pt.status !== ft.status) return true;
+          const pSubs = pt.subtasks || [];
+          const fSubs = ft.subtasks || [];
+          if (pSubs.length !== fSubs.length) return true;
+          return pSubs.some((ps, sI) => {
+            const fs = fSubs[sI];
+            return !fs || ps.id !== fs.id || ps.isCompleted !== fs.isCompleted || ps.title !== fs.title;
+          });
+        });
+        return hasChange ? fetchedTasks : prev;
+      });
+
+      setStats((prev) => {
+        if (!prev) return fetchedStats;
+        if (
+          prev.total !== fetchedStats.total ||
+          prev.completed !== fetchedStats.completed ||
+          prev.pending !== fetchedStats.pending ||
+          prev.inProgress !== fetchedStats.inProgress
+        ) {
+          return fetchedStats;
+        }
+        return prev;
+      });
+    } catch {
+      // Silent sync catches errors without disrupting active UI
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchTasksData]);
+
+  const { broadcastEvent } = useTaskSync({
+    enabled: isAuthenticated,
+    onSilentSync: silentSyncTasks,
+    pollIntervalMs: 2500,
+  });
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
-
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
 
   const refreshAll = useCallback(async () => {
     await Promise.all([loadTasks(), loadCategories()]);
@@ -121,6 +155,7 @@ export function useTasks() {
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status: status as any } : t))
     );
+    broadcastEvent({ type: "TASK_UPDATE", taskId: id });
     try {
       await taskService.updateStatus(id, status);
       const newStats = await taskService.getStats();
@@ -152,6 +187,7 @@ export function useTasks() {
           : t
       )
     );
+    broadcastEvent({ type: "SUBTASK_ADD", taskId });
     return subtask;
   };
 
@@ -168,8 +204,11 @@ export function useTasks() {
           : t
       )
     );
+    broadcastEvent({ type: "SUBTASK_TOGGLE", taskId, subtaskId });
     try {
       await taskService.toggleSubtask(subtaskId);
+      const newStats = await taskService.getStats();
+      setStats(newStats);
     } catch (err) {
       await loadTasks();
       throw err;
@@ -187,23 +226,19 @@ export function useTasks() {
           : t
       )
     );
+    broadcastEvent({ type: "SUBTASK_DELETE", taskId, subtaskId });
     try {
       await taskService.deleteSubtask(subtaskId);
+      const newStats = await taskService.getStats();
+      setStats(newStats);
     } catch (err) {
       await loadTasks();
       throw err;
     }
   };
 
-  const createCategory = async (name: string, colorHex?: string) => {
-    const newCategory = await categoryService.create(name, colorHex);
-    setCategories((prev) => [...prev, newCategory]);
-    return newCategory;
-  };
-
-  const deleteCategory = async (id: string) => {
-    await categoryService.delete(id);
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteCategory = async (id: string) => {
+    await deleteCategory(id);
     await loadTasks();
   };
 
@@ -226,6 +261,6 @@ export function useTasks() {
     toggleSubtask,
     deleteSubtask,
     createCategory,
-    deleteCategory,
+    deleteCategory: handleDeleteCategory,
   };
 }

@@ -295,6 +295,11 @@ export class TaskService {
       })
       .returning();
 
+    await db
+      .update(tasks)
+      .set({ updatedAt: new Date() })
+      .where(eq(tasks.id, taskId));
+
     return newSubtask;
   }
 
@@ -320,6 +325,11 @@ export class TaskService {
       .where(eq(subtasks.id, subtaskId))
       .returning();
 
+    await db
+      .update(tasks)
+      .set({ updatedAt: new Date() })
+      .where(eq(tasks.id, subtask.taskId));
+
     return updated;
   }
 
@@ -343,6 +353,11 @@ export class TaskService {
       .delete(subtasks)
       .where(eq(subtasks.id, subtaskId))
       .returning();
+
+    await db
+      .update(tasks)
+      .set({ updatedAt: new Date() })
+      .where(eq(tasks.id, subtask.taskId));
 
     return deleted;
   }

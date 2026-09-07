@@ -6,7 +6,6 @@ import {
   Calendar,
   GripVertical,
   CheckSquare,
-  MessageSquare,
 } from "lucide-react";
 import { TaskCardMenu } from "./card/TaskCardMenu";
 import { TaskCardSubtasks } from "./card/TaskCardSubtasks";
@@ -55,6 +54,11 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
     const list: CollaboratorInfo[] = [];
     const seen = new Set<string>();
 
+    const hasCollaboration =
+      (task.collaborators && task.collaborators.length > 0) ||
+      (task.collaboratorCount !== undefined && task.collaboratorCount > 0) ||
+      task.isOwner === false;
+
     if (task.collaborators && Array.isArray(task.collaborators)) {
       task.collaborators.forEach((c) => {
         const u = c.user;
@@ -65,13 +69,13 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
       });
     }
 
-    if (task.isOwner === false && task.user && task.user.name && !seen.has(task.user.id)) {
+    if (hasCollaboration && task.user && task.user.name && !seen.has(task.user.id)) {
       seen.add(task.user.id);
       list.unshift({ id: task.user.id, name: task.user.name, role: "Pemilik" });
     }
 
     return list;
-  }, [task.collaborators, task.isOwner, task.user]);
+  }, [task.collaborators, task.collaboratorCount, task.isOwner, task.user]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     if (!isDesktop) {
@@ -162,20 +166,6 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
               </span>
             </span>
           )}
-
-          {/* Mini Chat / Diskusi button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenChat?.(task);
-            }}
-            title="Diskusi Kolaboratif Tugas"
-            className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-lg border border-indigo-200 bg-indigo-50/80 text-indigo-700 hover:bg-indigo-100 hover:border-indigo-300 transition-colors cursor-pointer"
-          >
-            <MessageSquare className="w-2.5 h-2.5 text-indigo-600" />
-            <span className="hidden sm:inline">Diskusi</span>
-          </button>
 
           {/* Options Menu Trigger & Dropdown */}
           <TaskCardMenu

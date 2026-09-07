@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { collaborationService } from "../../services/collaborationService";
 import { Task, TaskChatMessage } from "../../types";
-import { Send, MessageSquare, Users, Share2 } from "lucide-react";
+import { Send, Share2, ArrowLeft } from "lucide-react";
+import { TaskDiscussionSelector } from "./discussion/TaskDiscussionSelector";
+import { TaskDiscussionMessageList } from "./discussion/TaskDiscussionMessageList";
 
 export interface TaskDiscussionTabProps {
   activeTaskForChat?: Task | null;
@@ -124,6 +126,17 @@ export const TaskDiscussionTab: React.FC<TaskDiscussionTabProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
+            {onSelectTaskForChat && (
+              <button
+                type="button"
+                onClick={() => onSelectTaskForChat(null)}
+                title="Kembali ke pilih tugas untuk didiskusikan"
+                className="inline-flex items-center justify-center p-1.5 rounded-xl border border-slate-200/80 bg-slate-100/70 hover:bg-slate-200/80 text-slate-500 hover:text-slate-700 transition-colors cursor-pointer shadow-xs"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleCopyInviteLink}
@@ -153,104 +166,21 @@ export const TaskDiscussionTab: React.FC<TaskDiscussionTabProps> = ({
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center text-center">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-3 shadow-sm">
-            <Users className="w-6 h-6" />
-          </div>
-          <h4 className="text-sm font-bold text-slate-800 mb-1">Pilih Tugas untuk Didiskusikan</h4>
-          <p className="text-xs text-slate-500 max-w-xs mb-4">
-            Pilih salah satu tugas dari daftar di bawah ini untuk membuka ruang obrolan tim.
-          </p>
-          <div className="w-full space-y-2 max-h-72 overflow-y-auto pr-1">
-            {(tasks || []).map((t) => (
-              <div
-                key={t.id}
-                onClick={() => onSelectTaskForChat?.(t)}
-                className="p-3 rounded-2xl bg-white/80 hover:bg-white border border-slate-200/80 hover:border-indigo-300 text-left cursor-pointer transition-all shadow-xs flex items-center justify-between gap-2"
-              >
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-800 truncate">{t.title}</p>
-                  <p className="text-[10px] text-slate-400 capitalize">Status: {t.status}</p>
-                </div>
-                <button
-                  type="button"
-                  className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-xl shrink-0 transition-colors"
-                >
-                  Buka Diskusi
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+        <TaskDiscussionSelector
+          tasks={tasks}
+          onSelectTask={onSelectTaskForChat}
+        />
       )}
 
       {/* Task Discussion Message Thread */}
       {activeTaskForChat && (
         <>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
-            {taskMessages.length === 0 && !isLoadingTaskMessages ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-6">
-                <div className="w-10 h-10 rounded-2xl bg-white/60 border border-white flex items-center justify-center mb-2 shadow-xs">
-                  <MessageSquare className="w-5 h-5 text-indigo-400" />
-                </div>
-                <p className="text-xs font-bold text-slate-700">Belum ada obrolan</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Mulai percakapan dengan anggota tim kolaborator tugas ini!
-                </p>
-              </div>
-            ) : (
-              taskMessages.map((msg) => {
-                const isMe = msg.userId === user?.id;
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex gap-2.5 text-xs leading-relaxed ${
-                      isMe ? "justify-end" : "justify-start"
-                    }`}
-                  >
-                    {!isMe && (
-                      <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm font-bold text-[10px] uppercase">
-                        {msg.user?.name?.charAt(0) || "U"}
-                      </div>
-                    )}
-
-                    <div
-                      className={`max-w-[80%] rounded-2xl p-3 shadow-xs ${
-                        isMe
-                          ? "bg-indigo-600 text-white font-medium"
-                          : "bg-white/90 backdrop-blur-md border border-slate-200/80 text-slate-800"
-                      }`}
-                    >
-                      {!isMe && (
-                        <p className="text-[10px] font-bold text-indigo-600 mb-1">
-                          {msg.user?.name || "Kolaborator"}
-                        </p>
-                      )}
-                      <div className="whitespace-pre-wrap break-words text-xs">{msg.content || msg.message}</div>
-                      <p
-                        className={`text-[9px] mt-1.5 text-right ${
-                          isMe ? "text-indigo-200" : "text-slate-400"
-                        }`}
-                      >
-                        {new Date(msg.createdAt).toLocaleTimeString("id-ID", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-
-                    {isMe && (
-                      <div className="w-7 h-7 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm font-bold text-[10px] uppercase">
-                        {user?.name?.charAt(0) || "S"}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-
-            <div ref={taskMessagesEndRef} />
-          </div>
+          <TaskDiscussionMessageList
+            taskMessages={taskMessages}
+            isLoading={isLoadingTaskMessages}
+            currentUserId={user?.id}
+            messagesEndRef={taskMessagesEndRef}
+          />
 
           {/* Task Chat Input Form */}
           <form
