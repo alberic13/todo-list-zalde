@@ -8,6 +8,7 @@ import { categoryController } from "./controllers/category.controller";
 import { taskController } from "./controllers/task.controller";
 import { aiController } from "./controllers/ai.controller";
 import { calendarController } from "./controllers/calendar.controller";
+import { cronController } from "./controllers/cron.controller";
 import { successResponse } from "./utils/response";
 
 export const app = new Elysia()
@@ -56,7 +57,8 @@ export const app = new Elysia()
   .use(categoryController)
   .use(taskController)
   .use(aiController)
-  .use(calendarController);
+  .use(calendarController)
+  .use(cronController);
 
 // Listen when executed directly (skip on Vercel Serverless or in Test)
 if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {

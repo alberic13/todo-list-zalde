@@ -14,4 +14,5 @@ export const env = {
   GMAIL_APP_PASSWORD: (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, ""),
   EMAIL_FROM: process.env.EMAIL_FROM || "Zalde Todo AI <zaldealberic@gmail.com>",
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
+  CRON_SECRET: process.env.CRON_SECRET || "",
 };

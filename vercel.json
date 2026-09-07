@@ -22,5 +22,11 @@
         "service": "frontend"
       }
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/daily-reminder",
+      "schedule": "0 17 * * *"
+    }
   ]
 }
