@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Task } from "../../types";
-import { Badge } from "../ui/Badge";
-import { formatRelativeDate, isOverdue } from "../../utils/date";
-import {
-  Calendar,
-  GripVertical,
-  CheckSquare,
-} from "lucide-react";
+import { GripVertical, CheckSquare } from "lucide-react";
 import { TaskCardMenu } from "./card/TaskCardMenu";
 import { TaskCardSubtasks } from "./card/TaskCardSubtasks";
-import { TaskCardCollaborators, CollaboratorInfo } from "./card/TaskCardCollaborators";
+import { TaskCardCollaborators } from "./card/TaskCardCollaborators";
+import { TaskCardBadges } from "./card/TaskCardBadges";
 
 export interface TaskCardProps {
   task: Task;
@@ -20,6 +15,19 @@ export interface TaskCardProps {
   onToggleSubtask: (subtaskId: string, taskId: string) => void;
   onOpenChat?: (task: Task) => void;
   isDragging?: boolean;
+}
+
+function getPriorityDot(p: string) {
+  switch (p) {
+    case "urgent":
+      return "bg-rose-500 shadow-rose-500/50 shadow-sm ring-2 ring-rose-200";
+    case "high":
+      return "bg-amber-500 ring-2 ring-amber-200";
+    case "medium":
+      return "bg-sky-500 ring-2 ring-sky-200";
+    default:
+      return "bg-slate-400 ring-2 ring-slate-200";
+  }
 }
 
 export const TaskCard: React.FC<TaskCardProps> = React.memo(({
@@ -50,34 +58,6 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
 
   const subtasks = task.subtasks || [];
   const completedSubtasks = subtasks.filter((s) => s.isCompleted).length;
-  const overdue = task.status !== "done" && isOverdue(task.dueDate);
-
-  const collaboratorsList = React.useMemo<CollaboratorInfo[]>(() => {
-    const list: CollaboratorInfo[] = [];
-    const seen = new Set<string>();
-
-    const hasCollaboration =
-      (task.collaborators && task.collaborators.length > 0) ||
-      (task.collaboratorCount !== undefined && task.collaboratorCount > 0) ||
-      task.isOwner === false;
-
-    if (task.collaborators && Array.isArray(task.collaborators)) {
-      task.collaborators.forEach((c) => {
-        const u = c.user;
-        if (u && u.name && !seen.has(u.id)) {
-          seen.add(u.id);
-          list.push({ id: u.id, name: u.name, role: c.role || "Kolaborator" });
-        }
-      });
-    }
-
-    if (hasCollaboration && task.user && task.user.name && !seen.has(task.user.id)) {
-      seen.add(task.user.id);
-      list.unshift({ id: task.user.id, name: task.user.name, role: "Pemilik" });
-    }
-
-    return list;
-  }, [task.collaborators, task.collaboratorCount, task.isOwner, task.user]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     if (!isDesktop) {
@@ -91,19 +71,6 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
 
   const handleDragEnd = () => {
     setIsDragged(false);
-  };
-
-  const getPriorityDot = (p: string) => {
-    switch (p) {
-      case "urgent":
-        return "bg-rose-500 shadow-rose-500/50 shadow-sm ring-2 ring-rose-200";
-      case "high":
-        return "bg-amber-500 ring-2 ring-amber-200";
-      case "medium":
-        return "bg-sky-500 ring-2 ring-sky-200";
-      default:
-        return "bg-slate-400 ring-2 ring-slate-200";
-    }
   };
 
   return (
@@ -128,12 +95,10 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
       {/* 1. Compact Header Row (Always Visible) */}
       <div className="flex items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* Drag Grip Handle - Desktop only */}
           <div className="hidden md:block text-slate-300 group-hover:text-slate-500 transition-colors shrink-0">
             <GripVertical className="w-3.5 h-3.5" />
           </div>
 
-          {/* Priority Status Dot Indicator */}
           <span
             className={`w-2 h-2 rounded-full shrink-0 transition-transform group-hover:scale-110 ${getPriorityDot(
               task.priority
@@ -141,7 +106,6 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
             title={`Prioritas: ${task.priority}`}
           />
 
-          {/* Task Title */}
           <h4
             className={`text-xs font-bold text-slate-900 transition-colors truncate flex-1 select-none ${
               task.status === "done" ? "line-through text-slate-400 font-medium" : ""
@@ -151,9 +115,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
           </h4>
         </div>
 
-        {/* Compact Right Meta Indicators */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {/* Mini subtask counter pill */}
           {subtasks.length > 0 && (
             <span
               className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-lg border transition-all ${
@@ -169,7 +131,6 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
             </span>
           )}
 
-          {/* Options Menu Trigger & Dropdown */}
           <TaskCardMenu
             task={task}
             onEdit={onEdit}
@@ -190,55 +151,21 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
             : "max-h-0 opacity-0 group-hover:max-h-96 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-2.5 group-hover:border-t group-hover:border-slate-100"
         }`}
       >
-        {/* Description */}
         {task.description && (
           <p className="text-xs text-slate-500 mb-2.5 line-clamp-2 leading-relaxed">
             {task.description}
           </p>
         )}
 
-        {/* Badges & Meta Tags */}
-        <div className="flex flex-wrap items-center gap-1.5 text-xs mb-2">
-          {task.similarityScore !== undefined && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-              ✨ {Math.round(task.similarityScore * 100)}% Relevan
-            </span>
-          )}
+        <TaskCardBadges task={task} />
 
-          <Badge priority={task.priority} />
-
-          {task.category && (
-            <Badge variant="category" colorHex={task.category.colorHex}>
-              {task.category.name}
-            </Badge>
-          )}
-
-          {task.dueDate && (
-            <span
-              className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                overdue
-                  ? "bg-rose-50 text-rose-700 border-rose-200 font-bold"
-                  : "bg-slate-100 text-slate-600 border-slate-200"
-              }`}
-            >
-              <Calendar className="w-3 h-3" />
-              {formatRelativeDate(task.dueDate)}
-            </span>
-          )}
-        </div>
-
-        {/* Subtasks Checklist Interactive List */}
         <TaskCardSubtasks
           subtasks={subtasks}
           taskId={task.id}
           onToggleSubtask={onToggleSubtask}
         />
 
-        {/* Kolaborator Profile Badges */}
-        <TaskCardCollaborators
-          task={task}
-          collaboratorsList={collaboratorsList}
-        />
+        <TaskCardCollaborators task={task} />
       </div>
     </div>
   );
