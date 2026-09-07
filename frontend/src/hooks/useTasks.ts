@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Task, TaskStats, TaskFilters } from "../types";
 import { taskService, CreateTaskPayload, UpdateTaskPayload } from "../services/taskService";
 import { aiService } from "../services/aiService";
+import { collaborationService } from "../services/collaborationService";
 import { useAuth } from "./useAuth";
 import { useTaskSync } from "./useTaskSync";
 import { useCategories } from "./useCategories";
 
 export function useTasks() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<TaskStats | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -93,6 +94,12 @@ export function useTasks() {
         const hasChange = prev.some((pt, i) => {
           const ft = fetchedTasks[i];
           if (!ft || pt.id !== ft.id || pt.status !== ft.status) return true;
+          if (pt.updatedAt !== ft.updatedAt) return true;
+          if (pt.collaboratorCount !== ft.collaboratorCount) return true;
+          const pCollabs = pt.collaborators || [];
+          const fCollabs = ft.collaborators || [];
+          if (pCollabs.length !== fCollabs.length) return true;
+          if (pCollabs.some((pc, cI) => pc.userId !== fCollabs[cI]?.userId)) return true;
           const pSubs = pt.subtasks || [];
           const fSubs = ft.subtasks || [];
           if (pSubs.length !== fSubs.length) return true;
@@ -178,6 +185,20 @@ export function useTasks() {
     }
   };
 
+  const leaveTask = async (id: string) => {
+    if (!user?.id) return;
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await collaborationService.removeCollaborator(id, user.id);
+      const newStats = await taskService.getStats();
+      setStats(newStats);
+      broadcastEvent({ type: "TASK_UPDATE", taskId: id });
+    } catch (err) {
+      await loadTasks();
+      throw err;
+    }
+  };
+
   const addSubtask = async (taskId: string, title: string) => {
     const subtask = await taskService.addSubtask(taskId, title);
     setTasks((prev) =>
@@ -257,6 +278,7 @@ export function useTasks() {
     updateTask,
     updateStatus,
     deleteTask,
+    leaveTask,
     addSubtask,
     toggleSubtask,
     deleteSubtask,

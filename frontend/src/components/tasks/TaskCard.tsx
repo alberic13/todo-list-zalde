@@ -15,6 +15,7 @@ export interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onLeaveTask?: (id: string) => void | Promise<void>;
   onStatusChange?: (id: string, status: string) => void;
   onToggleSubtask: (subtaskId: string, taskId: string) => void;
   onOpenChat?: (task: Task) => void;
@@ -25,6 +26,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
   task,
   onEdit,
   onDelete,
+  onLeaveTask,
   onStatusChange,
   onToggleSubtask,
   onOpenChat,
@@ -172,6 +174,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
             task={task}
             onEdit={onEdit}
             onDelete={onDelete}
+            onLeaveTask={onLeaveTask}
             onStatusChange={onStatusChange}
             onOpenChat={onOpenChat}
             onMenuToggle={setIsMenuOpen}

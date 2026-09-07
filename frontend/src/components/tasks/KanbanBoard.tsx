@@ -7,6 +7,7 @@ export interface KanbanBoardProps {
   tasks: Task[];
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onLeaveTask?: (id: string) => void | Promise<void>;
   onStatusChange: (id: string, status: string) => void;
   onToggleSubtask: (subtaskId: string, taskId: string) => void;
   onOpenCreateTaskWithStatus: (status: "todo" | "in_progress" | "done") => void;
@@ -17,6 +18,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = React.memo(({
   tasks,
   onEdit,
   onDelete,
+  onLeaveTask,
   onStatusChange,
   onToggleSubtask,
   onOpenCreateTaskWithStatus,
@@ -154,6 +156,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = React.memo(({
                     task={task}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onLeaveTask={onLeaveTask}
                     onStatusChange={onStatusChange}
                     onToggleSubtask={onToggleSubtask}
                     onOpenChat={onOpenChat}

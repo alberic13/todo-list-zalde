@@ -90,6 +90,11 @@ export class CollaborationService {
         userId,
         role: "collaborator",
       });
+
+      await db
+        .update(tasks)
+        .set({ updatedAt: new Date() })
+        .where(eq(tasks.id, task.id));
     }
 
     return {
@@ -186,6 +191,11 @@ export class CollaborationService {
     await db
       .delete(taskCollaborators)
       .where(and(eq(taskCollaborators.taskId, taskId), eq(taskCollaborators.userId, targetUserId)));
+
+    await db
+      .update(tasks)
+      .set({ updatedAt: new Date() })
+      .where(eq(tasks.id, taskId));
 
     return { success: true, message: isSelfLeaving ? "Anda telah keluar dari tugas ini." : "Kolaborator berhasil dihapus." };
   }

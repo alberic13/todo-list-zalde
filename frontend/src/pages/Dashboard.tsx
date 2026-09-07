@@ -31,6 +31,7 @@ export const Dashboard: React.FC = () => {
     updateTask,
     updateStatus,
     deleteTask,
+    leaveTask,
     addSubtask,
     toggleSubtask,
     deleteSubtask,
@@ -106,8 +107,7 @@ export const Dashboard: React.FC = () => {
 
   const handleLeaveTask = async (taskId: string) => {
     try {
-      await collaborationService.removeCollaborator(taskId, "me");
-      await refresh();
+      await leaveTask(taskId);
     } catch (err: any) {
       console.error("Gagal meninggalkan tugas:", err);
     }
@@ -189,6 +189,7 @@ export const Dashboard: React.FC = () => {
               tasks={tasks}
               onEdit={handleEditTask}
               onDelete={deleteTask}
+              onLeaveTask={leaveTask}
               onStatusChange={updateStatus}
               onToggleSubtask={toggleSubtask}
               onOpenCreateTaskWithStatus={handleOpenCreateTaskWithStatus}

@@ -10,6 +10,7 @@ export interface TaskListProps {
   isLoading: boolean;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onLeaveTask?: (id: string) => void | Promise<void>;
   onStatusChange: (id: string, status: string) => void;
   onToggleSubtask: (subtaskId: string, taskId: string) => void;
   onOpenCreateTask: () => void;
@@ -20,6 +21,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   isLoading,
   onEdit,
   onDelete,
+  onLeaveTask,
   onStatusChange,
   onToggleSubtask,
   onOpenCreateTask,
@@ -75,6 +77,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           task={task}
           onEdit={onEdit}
           onDelete={onDelete}
+          onLeaveTask={onLeaveTask}
           onStatusChange={onStatusChange}
           onToggleSubtask={onToggleSubtask}
         />
