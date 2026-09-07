@@ -27,11 +27,17 @@ export interface Subtask {
 
 export interface TaskCollaboratorMember {
   id: string;
+  userId?: string;
   name: string;
   email: string;
   role: string;
   isOwner: boolean;
   joinedAt?: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface TaskChatMessage {
@@ -62,7 +68,22 @@ export interface Task {
   inviteCode?: string | null;
   isOwner?: boolean;
   collaboratorCount?: number;
-  collaborators?: TaskCollaboratorMember[];
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  collaborators?: Array<{
+    id: string;
+    userId: string;
+    role?: string;
+    joinedAt?: string;
+    user?: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  }>;
   subtasks?: Subtask[];
   similarityScore?: number;
   createdAt: string;

@@ -12,7 +12,7 @@ const AiChatDrawer = lazy(() => import("../components/ai/AiChatDrawer").then(m =
 import { Skeleton } from "../components/ui/Skeleton";
 import { Task, TaskStatus } from "../types";
 import { CreateTaskPayload, UpdateTaskPayload } from "../services/taskService";
-import { Bot, AlertCircle, RefreshCw, Users, CheckCircle2 } from "lucide-react";
+import { Bot, AlertCircle, RefreshCw, CheckCircle2 } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
   const {
@@ -67,11 +67,11 @@ export const Dashboard: React.FC = () => {
         .joinTask(pendingCode)
         .then(async (joinedTask) => {
           setJoinNotification({
-            message: `Berhasil bergabung ke tugas: "${joinedTask.title}"`,
+            message: `Berhasil bergabung ke tugas: "${joinedTask.task.title}"`,
             success: true,
           });
           await refresh();
-          setSelectedTaskForChat(joinedTask);
+          setSelectedTaskForChat(joinedTask.task);
           setChatDrawerTab("task_chat");
           setIsAiDrawerOpen(true);
           setTimeout(() => setJoinNotification(null), 6000);

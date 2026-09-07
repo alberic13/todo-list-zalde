@@ -81,6 +81,9 @@ export class TaskService {
       where: and(...conditions),
       with: {
         category: true,
+        user: {
+          columns: { id: true, name: true, email: true },
+        },
         subtasks: {
           orderBy: [asc(subtasks.createdAt)],
         },
@@ -107,6 +110,9 @@ export class TaskService {
       where: eq(tasks.id, id),
       with: {
         category: true,
+        user: {
+          columns: { id: true, name: true, email: true },
+        },
         subtasks: {
           orderBy: [asc(subtasks.createdAt)],
         },

@@ -11,7 +11,6 @@ import {
   GripVertical,
   CheckSquare,
   ArrowRightLeft,
-  Users,
   MessageSquare,
   Share2,
 } from "lucide-react";
@@ -121,6 +120,28 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
   const subtasks = task.subtasks || [];
   const completedSubtasks = subtasks.filter((s) => s.isCompleted).length;
   const overdue = task.status !== "done" && isOverdue(task.dueDate);
+
+  const collaboratorsList = React.useMemo(() => {
+    const list: Array<{ id: string; name: string; role: string }> = [];
+    const seen = new Set<string>();
+
+    if (task.collaborators && Array.isArray(task.collaborators)) {
+      task.collaborators.forEach((c) => {
+        const u = c.user;
+        if (u && u.name && !seen.has(u.id)) {
+          seen.add(u.id);
+          list.push({ id: u.id, name: u.name, role: c.role || "Kolaborator" });
+        }
+      });
+    }
+
+    if (task.isOwner === false && task.user && task.user.name && !seen.has(task.user.id)) {
+      seen.add(task.user.id);
+      list.unshift({ id: task.user.id, name: task.user.name, role: "Pemilik" });
+    }
+
+    return list;
+  }, [task.collaborators, task.isOwner, task.user]);
 
   // Available move target statuses excluding current status
   const availableMoveOptions = MOVE_STATUS_OPTIONS.filter((opt) => opt.status !== task.status);
@@ -379,17 +400,6 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
               {formatRelativeDate(task.dueDate)}
             </span>
           )}
-
-          {/* Kolaborasi Badge */}
-          {((task.collaboratorCount !== undefined && task.collaboratorCount > 0) || task.isOwner === false) && (
-            <span
-              className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200"
-              title={task.isOwner === false ? "Tugas Kolaborasi (Anda Kolaborator)" : `${task.collaboratorCount} Kolaborator`}
-            >
-              <Users className="w-3 h-3 text-sky-600" />
-              <span>{task.isOwner === false ? "Kolaborator" : `${task.collaboratorCount} Anggota`}</span>
-            </span>
-          )}
         </div>
 
         {/* Subtasks Checklist Interactive List */}
@@ -437,6 +447,37 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Kolaborator Profile Badges di bawah checklist subtask */}
+        {(collaboratorsList.length > 0 || (task.collaboratorCount !== undefined && task.collaboratorCount > 0) || task.isOwner === false) && (
+          <div className="pt-2 mt-1.5 border-t border-slate-100 flex flex-wrap items-center gap-1.5">
+            {collaboratorsList.length > 0 ? (
+              collaboratorsList.map((collab) => (
+                <div
+                  key={collab.id}
+                  className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-0.5 rounded-full bg-slate-50 border border-slate-200/80 text-slate-700 shadow-2xs hover:bg-slate-100 transition-colors"
+                  title={`${collab.name} (${collab.role})`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-[10px] ring-1 ring-white shrink-0">
+                    {(collab.name || "U")[0].toUpperCase()}
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-700 truncate max-w-[130px]">
+                    {collab.name}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-0.5 rounded-full bg-slate-50 border border-slate-200/80 text-slate-700 shadow-2xs">
+                <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-[10px] ring-1 ring-white shrink-0">
+                  {(task.user?.name || "K")[0].toUpperCase()}
+                </div>
+                <span className="text-[11px] font-semibold text-slate-700 truncate max-w-[130px]">
+                  {task.user?.name || (task.isOwner === false ? "Kolaborator" : `${task.collaboratorCount} Kolaborator`)}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

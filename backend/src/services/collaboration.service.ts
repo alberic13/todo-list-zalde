@@ -132,18 +132,30 @@ export class CollaborationService {
     const members = [
       {
         id: task.user.id,
+        userId: task.user.id,
         name: task.user.name,
         email: task.user.email,
         role: "owner",
         isOwner: true,
+        user: {
+          id: task.user.id,
+          name: task.user.name,
+          email: task.user.email,
+        },
       },
       ...rawCollaborators.map((c) => ({
-        id: c.user.id,
+        id: c.id,
+        userId: c.user.id,
         name: c.user.name,
         email: c.user.email,
         role: c.role,
         isOwner: false,
         joinedAt: c.joinedAt,
+        user: {
+          id: c.user.id,
+          name: c.user.name,
+          email: c.user.email,
+        },
       })),
     ];
 
