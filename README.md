@@ -117,6 +117,7 @@ todo-list-zalde/
    - **1-Click WhatsApp Delivery**: Zalde AI merangkum jadwal prioritas harian dan menyediakan tombol direct chat WhatsApp terformat rapi.
    - **UI/UX macOS Theme**: Trigger icon gear minimalis di navbar dengan pop-up React Portal terpusat.
 5. **🔒 Keamanan, Verifikasi OTP & Manajemen Sesi**:
+   - **Google Single Sign-On (SSO)**: Autentikasi 1-klik terintegrasi Google Identity Services & OAuth 2.0; akun otomatis aktif (`isVerified = true`) tanpa perlu registrasi manual atau verifikasi kode OTP.
    - **Verifikasi Email OTP**: Pengiriman kode verifikasi 6-digit aman saat pendaftaran akun via Nodemailer.
    - **1-Click Password Reset**: Alur pemulihan kata sandi dengan token terenkripsi dan batas waktu kadaluwarsa.
    - **Kontrol Sesi "Ingat Saya"**: Penyimpanan fleksibel (*LocalStorage* untuk sesi persisten vs *SessionStorage* untuk privasi perangkat umum).
@@ -124,6 +125,14 @@ todo-list-zalde/
 6. **🚀 Optimasi Performa & Clean Code**:
    - **Frontend (Code Splitting)**: Implementasi `React.lazy()` & `Suspense` memecah *bundle* halaman `Dashboard`. Halaman Auth kini memuat lebih instan.
    - **Backend (DRY Auth Guard)**: Sentralisasi *middleware* `requireAuth` di Elysia.js menghapus redundansi cek otorisasi pada 15+ endpoint, menghasilkan kode yang jauh lebih ringkas dan *type-safe*.
+7. **⏰ Auto Notification Email Reminder (H-3 & Overdue Deadline)**:
+   - **Daily Automated Cron Job**: Evaluasi berkala tugas aktif setiap hari melalui Vercel Cron (`CRON_SECRET`) pada endpoint `/api/cron/reminders`.
+   - **Pengingat H-3 Sebelum Deadline**: Notifikasi email otomatis 3 hari sebelum tenggat waktu tugas agar pengguna dapat mengantisipasi pekerjaan lebih awal.
+   - **Peringatan Tugas Overdue**: Peringatan email untuk tugas yang telah melewati batas waktu dan belum selesai.
+   - **Modern Dark-Themed Email Template**: Desain template email responsif bertema gelap profesional dengan daftar tugas, level prioritas, dan tautan langsung ke workspace.
+8. **✨ Responsive Landing Hero & Glass Feature Badges**:
+   - **Dynamic Feature Showcase**: Tampilan visual landing page dan form login dilengkapi badge transparan modern (*glassmorphism*): `AI Integrated`, `Semantic Search`, `Drag & Drop`, `Realtime Sync`, `Auto Notif Email H-3`, `Google, Apple & Outlook Cal`, dan `SSO Google`.
+   - **Pixel-Perfect Scaling**: Tipografi dan padding dinamis menjaga keseimbangan visual desktop dan mobile tanpa merusak tombol aksi CTA.
 
 ---
 
@@ -197,6 +206,7 @@ npm run test:all
 | **API & Security** | `backend/test/auth.test.ts` | ✅ PASS (4/4) | Standardized JSON Response, Auth Guard, Health Check |
 | **Backend E2E Flow** | `backend/test/e2e.test.ts` | ✅ PASS (4/4) | Register ➔ Login ➔ Task & Subtasks CRUD ➔ Stats |
 | **RAG & Vector Search** | `backend/test/rag.test.ts` | ✅ PASS (2/2) | Text Chunking & L2-Normalized Vector Embeddings |
+| **Cron Email Reminder** | `backend/test/cron.test.ts` | ✅ PASS (4/4) | Timezone WIB/UTC Bounds, Auth Guard, H-3 & Overdue Dispatch |
 | **Frontend E2E Browser** | `frontend/tests/todo-flow.spec.ts` | ✅ PASS (1/1) | Real Browser: Demo Login ➔ Kanban Board ➔ Task CRUD Modal |
 
 ### 🖥️ Output Log Eksekusi QA Suite:
@@ -249,3 +259,4 @@ Running 1 test using 1 worker
 - [x] **Fase 2**: RAG Integration, `pgvector` Semantic Search, Gemini Task Breakdown, AI Chat Copilot Drawer.
 - [x] **Fase 3**: Integrasi WhatsApp Jadwal Prioritas, Database Profile Persistence, & UI/UX Refinements.
 - [x] **Fase 4**: Automated CI/CD Data Pipeline & Production Vercel + Neon DB Deployment.
+- [x] **Fase 5**: Integrasi Kalender RFC 5545 (Google, Apple, Outlook), Google Single Sign-On (SSO), Auto Notification Email Reminder H-3 via Cron Job, & Glassmorphism Hero Badges.
