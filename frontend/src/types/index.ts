@@ -25,6 +25,28 @@ export interface Subtask {
   createdAt?: string;
 }
 
+export interface TaskCollaboratorMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isOwner: boolean;
+  joinedAt?: string;
+}
+
+export interface TaskChatMessage {
+  id: string;
+  taskId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
 export interface Task {
   id: string;
   userId: string;
@@ -36,6 +58,10 @@ export interface Task {
   priority: TaskPriority;
   dueDate: string | null;
   orderIndex: number;
+  inviteCode?: string | null;
+  isOwner?: boolean;
+  collaboratorCount?: number;
+  collaborators?: TaskCollaboratorMember[];
   subtasks?: Subtask[];
   similarityScore?: number;
   createdAt: string;

@@ -9,6 +9,7 @@ import { taskController } from "./controllers/task.controller";
 import { aiController } from "./controllers/ai.controller";
 import { calendarController } from "./controllers/calendar.controller";
 import { cronController } from "./controllers/cron.controller";
+import { collaborationController } from "./controllers/collaboration.controller";
 import { successResponse } from "./utils/response";
 
 export const app = new Elysia()
@@ -35,6 +36,7 @@ export const app = new Elysia()
           { name: "Categories", description: "Task Category management" },
           { name: "AI & RAG", description: "Semantic vector search, RAG Copilot, and Task Breakdown" },
           { name: "Calendar", description: "Live iCal RFC 5545 feed & calendar sync" },
+          { name: "Collaboration", description: "Task-level collaboration and group discussion chat" },
         ],
       },
     })
@@ -58,7 +60,8 @@ export const app = new Elysia()
   .use(taskController)
   .use(aiController)
   .use(calendarController)
-  .use(cronController);
+  .use(cronController)
+  .use(collaborationController);
 
 // Listen when executed directly (skip on Vercel Serverless or in Test)
 if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {

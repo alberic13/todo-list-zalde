@@ -1,6 +1,6 @@
-import { eq, and, desc, asc, ilike, or, sql } from "drizzle-orm";
+import { eq, and, desc, asc, ilike, or, sql, inArray } from "drizzle-orm";
 import { db } from "../config/db";
-import { tasks, subtasks, categories } from "../models/schema";
+import { tasks, subtasks, categories, taskCollaborators } from "../models/schema";
 import { EmbeddingService } from "./embedding.service";
 
 export interface TaskFilters {
@@ -35,7 +35,19 @@ export interface UpdateTaskDTO {
 
 export class TaskService {
   static async list(userId: string, filters: TaskFilters = {}) {
-    const conditions = [eq(tasks.userId, userId)];
+    // 1. Find task IDs where user is invited as collaborator
+    const userCollabs = await db.query.taskCollaborators.findMany({
+      where: eq(taskCollaborators.userId, userId),
+      columns: { taskId: true },
+    });
+    const collabTaskIds = userCollabs.map((c) => c.taskId);
+
+    const accessCondition =
+      collabTaskIds.length > 0
+        ? or(eq(tasks.userId, userId), inArray(tasks.id, collabTaskIds))!
+        : eq(tasks.userId, userId);
+
+    const conditions = [accessCondition];
 
     if (filters.status && filters.status !== "all") {
       conditions.push(eq(tasks.status, filters.status));
@@ -65,29 +77,61 @@ export class TaskService {
       orderByClause = asc(tasks.orderIndex);
     }
 
-    return await db.query.tasks.findMany({
+    const taskList = await db.query.tasks.findMany({
       where: and(...conditions),
       with: {
         category: true,
         subtasks: {
           orderBy: [asc(subtasks.createdAt)],
         },
+        collaborators: {
+          with: {
+            user: {
+              columns: { id: true, name: true, email: true },
+            },
+          },
+        },
       },
       orderBy: [orderByClause, desc(tasks.createdAt)],
     });
+
+    return taskList.map((t) => ({
+      ...t,
+      isOwner: t.userId === userId,
+      collaboratorCount: (t.collaborators || []).length,
+    }));
   }
 
   static async getById(id: string, userId: string) {
     const task = await db.query.tasks.findFirst({
-      where: and(eq(tasks.id, id), eq(tasks.userId, userId)),
+      where: eq(tasks.id, id),
       with: {
         category: true,
         subtasks: {
           orderBy: [asc(subtasks.createdAt)],
         },
+        collaborators: {
+          with: {
+            user: {
+              columns: { id: true, name: true, email: true },
+            },
+          },
+        },
       },
     });
-    return task || null;
+
+    if (!task) return null;
+
+    const isOwner = task.userId === userId;
+    const isCollaborator = isOwner || (task.collaborators || []).some((c) => c.userId === userId);
+
+    if (!isCollaborator) return null;
+
+    return {
+      ...task,
+      isOwner,
+      collaboratorCount: (task.collaborators || []).length,
+    };
   }
 
   static async create(userId: string, data: CreateTaskDTO) {
@@ -158,21 +202,33 @@ export class TaskService {
   }
 
   static async updateStatus(id: string, userId: string, status: string) {
+    const task = await db.query.tasks.findFirst({
+      where: eq(tasks.id, id),
+      with: { collaborators: true },
+    });
+
+    if (!task) return null;
+
+    const isOwner = task.userId === userId;
+    const isCollaborator = isOwner || (task.collaborators || []).some((c) => c.userId === userId);
+    if (!isCollaborator) return null;
+
     const [updated] = await db
       .update(tasks)
       .set({ status, updatedAt: new Date() })
-      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
+      .where(eq(tasks.id, id))
       .returning();
 
     if (updated) {
       // ponytail: non-blocking embedding sync to keep Kanban drag-drop instant. upgrade to background queue if serverless execution freeze drops tasks.
-      EmbeddingService.syncTaskEmbedding(id, userId).catch(console.error);
+      EmbeddingService.syncTaskEmbedding(id, task.userId).catch(console.error);
     }
 
     return updated ? await this.getById(id, userId) : null;
   }
 
   static async delete(id: string, userId: string) {
+    // Only owner can delete task
     // Remove embedding first
     await EmbeddingService.removeTaskEmbedding(id);
 
@@ -213,11 +269,16 @@ export class TaskService {
 
   // Subtask operations
   static async addSubtask(taskId: string, userId: string, title: string) {
-    // Verify user owns the parent task
+    // Verify user is owner or collaborator of parent task
     const parentTask = await db.query.tasks.findFirst({
-      where: and(eq(tasks.id, taskId), eq(tasks.userId, userId)),
+      where: eq(tasks.id, taskId),
+      with: { collaborators: true },
     });
     if (!parentTask) throw new Error("Task not found or unauthorized");
+
+    const isOwner = parentTask.userId === userId;
+    const isCollaborator = isOwner || (parentTask.collaborators || []).some((c) => c.userId === userId);
+    if (!isCollaborator) throw new Error("Task not found or unauthorized");
 
     const [newSubtask] = await db
       .insert(subtasks)
@@ -232,19 +293,20 @@ export class TaskService {
   }
 
   static async toggleSubtask(subtaskId: string, userId: string) {
-    // Join with parent task to verify ownership
-    const [subtask] = await db
-      .select({
-        id: subtasks.id,
-        isCompleted: subtasks.isCompleted,
-        taskId: subtasks.taskId,
-      })
-      .from(subtasks)
-      .innerJoin(tasks, eq(subtasks.taskId, tasks.id))
-      .where(and(eq(subtasks.id, subtaskId), eq(tasks.userId, userId)))
-      .limit(1);
+    const subtask = await db.query.subtasks.findFirst({
+      where: eq(subtasks.id, subtaskId),
+      with: {
+        task: {
+          with: { collaborators: true },
+        },
+      },
+    });
 
-    if (!subtask) throw new Error("Subtask not found or unauthorized");
+    if (!subtask || !subtask.task) throw new Error("Subtask not found or unauthorized");
+
+    const isOwner = subtask.task.userId === userId;
+    const isCollaborator = isOwner || (subtask.task.collaborators || []).some((c) => c.userId === userId);
+    if (!isCollaborator) throw new Error("Subtask not found or unauthorized");
 
     const [updated] = await db
       .update(subtasks)
@@ -256,17 +318,20 @@ export class TaskService {
   }
 
   static async deleteSubtask(subtaskId: string, userId: string) {
-    const [subtask] = await db
-      .select({
-        id: subtasks.id,
-        taskId: subtasks.taskId,
-      })
-      .from(subtasks)
-      .innerJoin(tasks, eq(subtasks.taskId, tasks.id))
-      .where(and(eq(subtasks.id, subtaskId), eq(tasks.userId, userId)))
-      .limit(1);
+    const subtask = await db.query.subtasks.findFirst({
+      where: eq(subtasks.id, subtaskId),
+      with: {
+        task: {
+          with: { collaborators: true },
+        },
+      },
+    });
 
-    if (!subtask) throw new Error("Subtask not found or unauthorized");
+    if (!subtask || !subtask.task) throw new Error("Subtask not found or unauthorized");
+
+    const isOwner = subtask.task.userId === userId;
+    const isCollaborator = isOwner || (subtask.task.collaborators || []).some((c) => c.userId === userId);
+    if (!isCollaborator) throw new Error("Subtask not found or unauthorized");
 
     const [deleted] = await db
       .delete(subtasks)

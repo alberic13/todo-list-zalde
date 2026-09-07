@@ -11,8 +11,12 @@ import {
   GripVertical,
   CheckSquare,
   ArrowRightLeft,
+  Users,
+  MessageSquare,
+  Share2,
 } from "lucide-react";
 import { calendarService } from "../../services/calendarService";
+import { collaborationService } from "../../services/collaborationService";
 
 const MOVE_STATUS_OPTIONS: Array<{
   status: TaskStatus;
@@ -30,6 +34,7 @@ export interface TaskCardProps {
   onDelete: (id: string) => void;
   onStatusChange?: (id: string, status: string) => void;
   onToggleSubtask: (subtaskId: string, taskId: string) => void;
+  onOpenChat?: (task: Task) => void;
   isDragging?: boolean;
 }
 
@@ -39,6 +44,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
   onDelete,
   onStatusChange,
   onToggleSubtask,
+  onOpenChat,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isDragged, setIsDragged] = useState(false);
@@ -93,6 +99,23 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
       setOpenUpwards(spaceBelow < 230 && spaceAboveInParent >= 230);
     }
     setShowMenu((prev) => !prev);
+  };
+
+  const handleCopyInvite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    try {
+      let code = task.inviteCode;
+      if (!code) {
+        const res = await collaborationService.getInviteCode(task.id);
+        code = res.inviteCode;
+      }
+      const url = collaborationService.buildInviteUrl(code);
+      await navigator.clipboard.writeText(url);
+      alert("Link undangan kolaborasi berhasil disalin ke clipboard!");
+    } catch (err) {
+      console.error("Gagal menyalin link:", err);
+    }
   };
 
   const subtasks = task.subtasks || [];
@@ -192,19 +215,19 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
             </span>
           )}
 
-          {/* Mini Due Date pill (Compact mode) */}
-          {task.dueDate && (
-            <span
-              className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-lg border ${
-                overdue
-                  ? "bg-rose-50 text-rose-700 border-rose-200 font-bold animate-pulse"
-                  : "bg-slate-50 text-slate-500 border-slate-200"
-              }`}
-            >
-              <Calendar className="w-2.5 h-2.5" />
-              <span>{formatRelativeDate(task.dueDate)}</span>
-            </span>
-          )}
+          {/* Mini Chat / Diskusi button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenChat?.(task);
+            }}
+            title="Diskusi Kolaboratif Tugas"
+            className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-lg border border-indigo-200 bg-indigo-50/80 text-indigo-700 hover:bg-indigo-100 hover:border-indigo-300 transition-colors"
+          >
+            <MessageSquare className="w-2.5 h-2.5 text-indigo-600" />
+            <span className="hidden sm:inline">Diskusi</span>
+          </button>
 
           {/* Options Menu Trigger */}
           <div className="relative" ref={triggerRef}>
@@ -236,11 +259,27 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
                   <button
                     onClick={() => {
                       setShowMenu(false);
+                      onOpenChat?.(task);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-indigo-600 hover:bg-slate-100 flex items-center gap-2 cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-indigo-600" /> Buka Diskusi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyInvite}
+                    className="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-indigo-600 hover:bg-slate-100 flex items-center gap-2 cursor-pointer"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-indigo-600" /> Salin Link Undangan
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
                       onEdit(task);
                     }}
                     className="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 cursor-pointer"
                   >
-                    <Edit2 className="w-3.5 h-3.5 text-indigo-600" /> Edit Detail
+                    <Edit2 className="w-3.5 h-3.5 text-indigo-600" /> {task.isOwner === false ? "Lihat Detail" : "Edit Detail"}
                   </button>
                   {task.dueDate && (
                     <a
@@ -288,7 +327,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
                     }}
                     className="w-full text-left px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
                   >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus Tugas
+                    <Trash2 className="w-3.5 h-3.5" /> {task.isOwner === false ? "Tinggalkan Tugas" : "Hapus Tugas"}
                   </button>
                 </div>
               </>
@@ -338,6 +377,17 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
             >
               <Calendar className="w-3 h-3" />
               {formatRelativeDate(task.dueDate)}
+            </span>
+          )}
+
+          {/* Kolaborasi Badge */}
+          {((task.collaboratorCount !== undefined && task.collaboratorCount > 0) || task.isOwner === false) && (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200"
+              title={task.isOwner === false ? "Tugas Kolaborasi (Anda Kolaborator)" : `${task.collaboratorCount} Kolaborator`}
+            >
+              <Users className="w-3 h-3 text-sky-600" />
+              <span>{task.isOwner === false ? "Kolaborator" : `${task.collaboratorCount} Anggota`}</span>
             </span>
           )}
         </div>

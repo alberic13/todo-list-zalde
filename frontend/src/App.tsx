@@ -10,6 +10,16 @@ import { Loader2, CheckSquare } from "lucide-react";
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const joinCode = params.get("join");
+      if (joinCode) {
+        localStorage.setItem("zalde_pending_join", joinCode);
+      }
+    }
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4">

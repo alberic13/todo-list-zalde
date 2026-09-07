@@ -7,6 +7,7 @@ import {
   integer,
   timestamp,
   index,
+  uniqueIndex,
   vector,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -60,6 +61,7 @@ export const tasks = pgTable(
     priority: varchar("priority", { length: 50 }).default("medium").notNull(), // 'low' | 'medium' | 'high' | 'urgent'
     dueDate: timestamp("due_date", { withTimezone: true }),
     orderIndex: integer("order_index").default(0).notNull(),
+    inviteCode: varchar("invite_code", { length: 32 }).unique(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -68,6 +70,7 @@ export const tasks = pgTable(
     index("task_status_idx").on(table.status),
     index("task_priority_idx").on(table.priority),
     index("task_due_date_idx").on(table.dueDate),
+    index("task_invite_code_idx").on(table.inviteCode),
   ]
 );
 
@@ -149,12 +152,55 @@ export const emailVerificationTokens = pgTable(
   ]
 );
 
+// Task Collaborators table
+export const taskCollaborators = pgTable(
+  "task_collaborators",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    taskId: uuid("task_id")
+      .references(() => tasks.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    role: varchar("role", { length: 20 }).default("collaborator").notNull(), // 'owner' | 'collaborator'
+    joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("task_collab_task_idx").on(table.taskId),
+    index("task_collab_user_idx").on(table.userId),
+    uniqueIndex("task_collab_task_user_idx").on(table.taskId, table.userId),
+  ]
+);
+
+// Task Messages table (Discussion chat per task)
+export const taskMessages = pgTable(
+  "task_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    taskId: uuid("task_id")
+      .references(() => tasks.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("task_msg_task_idx").on(table.taskId),
+    index("task_msg_created_idx").on(table.createdAt),
+  ]
+);
+
 // Drizzle Relations
 export const usersRelations = relations(users, ({ many }) => ({
   tasks: many(tasks),
   categories: many(categories),
   passwordResetTokens: many(passwordResetTokens),
   emailVerificationTokens: many(emailVerificationTokens),
+  collaborations: many(taskCollaborators),
+  taskMessages: many(taskMessages),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
@@ -179,6 +225,8 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     fields: [tasks.id],
     references: [taskEmbeddings.taskId],
   }),
+  collaborators: many(taskCollaborators),
+  messages: many(taskMessages),
 }));
 
 export const subtasksRelations = relations(subtasks, ({ one }) => ({
@@ -209,6 +257,28 @@ export const passwordResetTokensRelations = relations(passwordResetTokens, ({ on
 export const emailVerificationTokensRelations = relations(emailVerificationTokens, ({ one }) => ({
   user: one(users, {
     fields: [emailVerificationTokens.userId],
+    references: [users.id],
+  }),
+}));
+
+export const taskCollaboratorsRelations = relations(taskCollaborators, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskCollaborators.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [taskCollaborators.userId],
+    references: [users.id],
+  }),
+}));
+
+export const taskMessagesRelations = relations(taskMessages, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskMessages.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [taskMessages.userId],
     references: [users.id],
   }),
 }));
