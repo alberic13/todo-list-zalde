@@ -11,6 +11,7 @@ Aplikasi manajemen tugas modern berbasis **AI & RAG (Retrieval-Augmented Generat
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash%20%2B%20Embeddings-8E75B2.svg?logo=google-gemini)](https://ai.google.dev)
 [![iCalendar](https://img.shields.io/badge/iCalendar-RFC%205545%20(Webcal)-FF6B6B.svg?logo=google-calendar&logoColor=white)](https://tools.ietf.org/html/rfc5545)
 [![Google Calendar](https://img.shields.io/badge/Google%20Calendar-Auto%20Sync-4285F4.svg?logo=google-calendar&logoColor=white)](https://calendar.google.com/)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E%20Testing-2EAD33.svg?logo=playwright&logoColor=white)](https://playwright.dev)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy-Vercel-000000.svg?logo=vercel)](https://todo-list-zalde.vercel.app/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -82,6 +83,8 @@ todo-list-zalde/
 │   │   ├── App.tsx             # Main App router & auth state wrapper
 │   │   ├── index.css           # Tailwind CSS v4 theme tokens & styles
 │   │   └── main.tsx            # Vite React entry point
+│   ├── tests/                  # Playwright E2E browser test suites (todo-flow.spec.ts)
+│   ├── playwright.config.ts    # Playwright browser testing configuration
 │   ├── index.html
 │   ├── vite.config.ts
 │   ├── vercel.json             # Frontend SPA route rewrites configuration
@@ -175,7 +178,13 @@ npm run lint
 # Jalankan Test Suite Backend (Auth, Task CRUD, E2E, RAG Vector)
 npm run test
 
-# Jalankan Lint + Test sekaligus
+# Jalankan E2E Testing Browser Frontend (Playwright Headless)
+npm run test:e2e
+
+# Jalankan E2E Testing Browser Frontend (Playwright Interactive UI Mode)
+npm run test:e2e:ui
+
+# Jalankan Lint + Seluruh Test Sekaligus (Backend & Frontend E2E)
 npm run test:all
 ```
 
@@ -185,32 +194,15 @@ npm run test:all
 | **Backend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
 | **Frontend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
 | **Frontend Build** | `tsc -b && vite build` | ✅ PASS | Production bundle terkompresi (~88 kB Gzip) |
-| **API & Security** | `test/auth.test.ts` | ✅ PASS (4/4) | Standardized JSON Response, Auth Guard, Health Check |
-| **E2E Task Flow** | `test/e2e.test.ts` | ✅ PASS (4/4) | Register ➔ Login ➔ Task & Subtasks CRUD ➔ Stats |
-| **RAG & Vector Search** | `test/rag.test.ts` | ✅ PASS (2/2) | Text Chunking & L2-Normalized Vector Embeddings |
+| **API & Security** | `backend/test/auth.test.ts` | ✅ PASS (4/4) | Standardized JSON Response, Auth Guard, Health Check |
+| **Backend E2E Flow** | `backend/test/e2e.test.ts` | ✅ PASS (4/4) | Register ➔ Login ➔ Task & Subtasks CRUD ➔ Stats |
+| **RAG & Vector Search** | `backend/test/rag.test.ts` | ✅ PASS (2/2) | Text Chunking & L2-Normalized Vector Embeddings |
+| **Frontend E2E Browser** | `frontend/tests/todo-flow.spec.ts` | ✅ PASS (1/1) | Real Browser: Demo Login ➔ Kanban Board ➔ Task CRUD Modal |
 
-### 🖥️ Output Log Eksekusi QA Suite (`npm run test:all`):
+### 🖥️ Output Log Eksekusi QA Suite:
+
+#### 1. Backend Test Suite (`bun test`):
 ```text
-> todo-list-zalde@1.0.0 test:all
-> npm run lint && npm run test
-
-> todo-list-zalde@1.0.0 lint
-> npm run lint:backend && npm run lint:frontend
-
-> todo-list-zalde@1.0.0 lint:backend
-> cd backend && bun run typecheck
-
-$ tsc --noEmit
-
-> todo-list-zalde@1.0.0 lint:frontend
-> cd frontend && npm run lint
-
-> frontend@1.0.0 lint
-> tsc --noEmit
-
-> todo-list-zalde@1.0.0 test
-> cd backend && bun test
-
 bun test v1.3.14 (0d9b296a)
 
 test\auth.test.ts:
@@ -233,6 +225,20 @@ test\rag.test.ts:
  0 fail
  38 expect() calls
 Ran 10 tests across 3 files. [10.97s]
+```
+
+#### 2. Frontend Browser E2E Suite (`npx playwright test`):
+```text
+> todo-list-zalde@1.0.0 test:e2e
+> cd frontend && npm run test:e2e
+
+> frontend@1.0.0 test:e2e
+> playwright test
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\todo-flow.spec.ts:4:3 › Zalde Todo E2E User Flow › User login and task management flow
+  1 passed (10.7s)
 ```
 
 ---

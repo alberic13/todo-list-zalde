@@ -15,6 +15,7 @@
     "lint:frontend": "cd frontend && npm run lint",
     "lint": "npm run lint:backend && npm run lint:frontend",
     "test": "cd backend && bun test",
-    "test:all": "npm run lint && npm run test"
+    "test:e2e": "cd frontend && npm run test:e2e",
+    "test:all": "npm run lint && npm run test && npm run test:e2e"
   }
 }
