@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { Modal } from "../ui/Modal";
-import { authService, AuthResponse } from "../../services/authService";
-import { ShieldCheck, ArrowRight, CheckCircle2, AlertCircle, Loader2, RefreshCw, Mail } from "lucide-react";
+import { AuthResponse } from "../../services/authService";
+import { ShieldCheck, ArrowRight, AlertCircle, Loader2, RefreshCw, Mail } from "lucide-react";
+import { useVerifyEmail } from "./useVerifyEmail";
+import { VerifyEmailSuccessView } from "./VerifyEmailSuccessView";
 
-interface VerifyEmailModalProps {
+export interface VerifyEmailModalProps {
   isOpen: boolean;
   onClose: () => void;
   email: string;
@@ -18,92 +20,26 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
   initialDevCode,
   onSuccess,
 }) => {
-  const [code, setCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [devCode, setDevCode] = useState<string | null>(initialDevCode || null);
-  const [cooldown, setCooldown] = useState(60);
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Focus input saat modal terbuka
-  useEffect(() => {
-    if (isOpen) {
-      setIsSuccess(false);
-      setError(null);
-      setMessage("Kode verifikasi 6-digit telah dikirim ke email Anda.");
-      setCooldown(60);
-      if (initialDevCode) {
-        setDevCode(initialDevCode);
-        setCode(initialDevCode);
-      } else {
-        setCode("");
-      }
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 150);
-    }
-  }, [isOpen, initialDevCode]);
-
-  // Countdown timer 60s
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = setInterval(() => {
-      setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [cooldown]);
-
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanCode = code.trim();
-
-    if (!cleanCode || cleanCode.length !== 6) {
-      setError("Masukkan 6-digit kode verifikasi");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const res = await authService.verifyEmail(email, cleanCode);
-      setIsSuccess(true);
-      setMessage("Selamat! Akun Anda telah aktif.");
-      setTimeout(() => {
-        onSuccess(res);
-      }, 1200);
-    } catch (err: any) {
-      setError(err.message || "Kode verifikasi tidak valid atau telah kedaluwarsa");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    if (cooldown > 0 || isResending) return;
-
-    setIsResending(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      const res = await authService.resendVerification(email);
-      setMessage(res.message || "Kode verifikasi baru berhasil dikirim.");
-      if (res.devCode) {
-        setDevCode(res.devCode);
-        setCode(res.devCode);
-      }
-      setCooldown(60);
-    } catch (err: any) {
-      setError(err.message || "Gagal mengirim ulang kode. Silakan coba lagi.");
-    } finally {
-      setIsResending(false);
-    }
-  };
+  const {
+    code,
+    setCode,
+    isLoading,
+    isResending,
+    error,
+    setError,
+    message,
+    devCode,
+    cooldown,
+    isSuccess,
+    inputRef,
+    handleVerify,
+    handleResend,
+  } = useVerifyEmail({
+    isOpen,
+    email,
+    initialDevCode,
+    onSuccess,
+  });
 
   return (
     <Modal
@@ -113,22 +49,8 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
       className="p-6 sm:p-8 overflow-hidden"
     >
       {isSuccess ? (
-        /* Tampilan Sukses */
-        <div className="text-center py-6 animate-in zoom-in-95 duration-300">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 shadow-lg shadow-emerald-500/20">
-            <CheckCircle2 className="w-9 h-9" />
-          </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Akun Berhasil Aktif!</h3>
-          <p className="text-sm text-slate-600 mb-6">
-            Alamat email Anda telah terverifikasi. Mengalihkan ke dashboard...
-          </p>
-          <div className="flex justify-center items-center gap-2 text-xs font-semibold text-emerald-600">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Menyiapkan ruang kerja Anda...</span>
-          </div>
-        </div>
+        <VerifyEmailSuccessView />
       ) : (
-        /* Form Input OTP */
         <div>
           {/* Header */}
           <div className="text-center mb-6">

@@ -1,76 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Check,
   Copy,
   RefreshCw,
-  ExternalLink,
   CalendarDays,
   CalendarCheck,
 } from "lucide-react";
 import { Button } from "../ui/Button";
-import { calendarService } from "../../services/calendarService";
+import { useCalendarSync } from "./useCalendarSync";
+import { CalendarQuickConnect } from "./CalendarQuickConnect";
 
 export interface CalendarTabProps {
   onClose: () => void;
 }
 
 export const CalendarTab: React.FC<CalendarTabProps> = ({ onClose }) => {
-  const [calendarPath, setCalendarPath] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadCalendarToken();
-  }, []);
-
-  const loadCalendarToken = async () => {
-    try {
-      setIsLoading(true);
-      const data = await calendarService.getCalendarToken();
-      setCalendarPath(data.path);
-    } catch (err: any) {
-      setError(err.message || "Gagal memuat link kalender");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRegenerateToken = async () => {
-    if (
-      !window.confirm(
-        "Buat link kalender baru? Kalender yang sudah terhubung dengan link lama tidak akan menampilkan tugas lagi sampai Anda memasukkan link baru."
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setIsRegenerating(true);
-      const data = await calendarService.regenerateCalendarToken();
-      setCalendarPath(data.path);
-      setIsCopied(false);
-    } catch (err: any) {
-      setError(err.message || "Gagal membuat link kalender baru");
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
-
-  const baseUrl = window.location.origin;
-  const httpFeedUrl = calendarPath ? `${baseUrl}${calendarPath}` : "";
-  const webcalFeedUrl = httpFeedUrl ? calendarService.getWebcalUrl(httpFeedUrl) : "";
-  const googleSubscribeUrl = httpFeedUrl
-    ? calendarService.getGoogleCalendarSubscribeUrl(httpFeedUrl)
-    : "";
-
-  const handleCopyUrl = (urlToCopy: string) => {
-    if (!urlToCopy) return;
-    navigator.clipboard.writeText(urlToCopy);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2500);
-  };
+  const {
+    isLoading,
+    isCopied,
+    isRegenerating,
+    error,
+    webcalFeedUrl,
+    googleSubscribeUrl,
+    handleRegenerateToken,
+    handleCopyUrl,
+  } = useCalendarSync();
 
   return (
     <div className="space-y-4">
@@ -102,7 +56,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({ onClose }) => {
             type="button"
             onClick={handleRegenerateToken}
             disabled={isRegenerating || isLoading}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-indigo-600 transition"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-indigo-600 transition cursor-pointer"
             title="Buat link baru jika ingin memutuskan sambungan di kalender lama"
           >
             <RefreshCw className={`w-3 h-3 ${isRegenerating ? "animate-spin text-indigo-600" : ""}`} />
@@ -125,7 +79,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({ onClose }) => {
             type="button"
             onClick={() => handleCopyUrl(webcalFeedUrl)}
             disabled={!webcalFeedUrl || isLoading}
-            className="absolute right-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all active:scale-95 disabled:opacity-50"
+            className="absolute right-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             {isCopied ? (
               <>
@@ -146,52 +100,10 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({ onClose }) => {
       </div>
 
       {/* Quick Connect Buttons */}
-      <div className="space-y-2 pt-1">
-        <span className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          Sambungkan Langsung:
-        </span>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {/* Google Calendar */}
-          <a
-            href={googleSubscribeUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center justify-between p-3 rounded-2xl border border-slate-200/80 bg-white hover:border-blue-200 hover:bg-blue-50/30 transition-all group shadow-sm"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs">
-                G
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                  Google Calendar
-                </h4>
-                <p className="text-[10px] text-slate-500">Buka langsung di Google Calendar</p>
-              </div>
-            </div>
-            <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-transform" />
-          </a>
-
-          {/* Apple Calendar */}
-          <a
-            href={webcalFeedUrl}
-            className="flex items-center justify-between p-3 rounded-2xl border border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50 transition-all group shadow-sm"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-slate-800 font-bold text-xs">
-                
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-900">
-                  Apple Calendar
-                </h4>
-                <p className="text-[10px] text-slate-500">Untuk iPhone, iPad, atau Mac</p>
-              </div>
-            </div>
-            <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 transition-transform" />
-          </a>
-        </div>
-      </div>
+      <CalendarQuickConnect
+        googleSubscribeUrl={googleSubscribeUrl}
+        webcalFeedUrl={webcalFeedUrl}
+      />
 
       {/* Step-by-Step Instructions */}
       <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs text-slate-600 space-y-2">

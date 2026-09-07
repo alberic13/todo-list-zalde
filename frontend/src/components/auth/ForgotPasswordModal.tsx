@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Modal } from "../ui/Modal";
-import { authService } from "../../services/authService";
 import { ForgotPasswordRequestStep } from "./forgot-password/ForgotPasswordRequestStep";
 import { ForgotPasswordResetStep } from "./forgot-password/ForgotPasswordResetStep";
 import { ForgotPasswordDoneStep } from "./forgot-password/ForgotPasswordDoneStep";
+import { useForgotPassword } from "./forgot-password/useForgotPassword";
 
-interface ForgotPasswordModalProps {
+export interface ForgotPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialEmail?: string;
@@ -20,119 +20,33 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   initialToken = "",
   onSuccessLogin,
 }) => {
-  const [step, setStep] = useState<"request" | "reset" | "done">("request");
-  const [email, setEmail] = useState(initialEmail);
-  const [token, setToken] = useState(initialToken);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
-  const [devCode, setDevCode] = useState<string | null>(null);
-  const [cooldown, setCooldown] = useState(0);
-
-  // Countdown timer for cooldown
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = setInterval(() => {
-      setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [cooldown]);
-
-  // Auto set if initialToken is provided (e.g. from email URL link)
-  useEffect(() => {
-    if (initialToken) {
-      setToken(initialToken);
-      setStep("reset");
-    }
-  }, [initialToken]);
-
-  useEffect(() => {
-    if (initialEmail) {
-      setEmail(initialEmail);
-    }
-  }, [initialEmail]);
-
-  const handleResetModalState = () => {
-    setStep(initialToken ? "reset" : "request");
-    setError(null);
-    setMessage(null);
-    setWarning(null);
-    setDevCode(null);
-    setNewPassword("");
-    setConfirmPassword("");
-    onClose();
-  };
-
-  // Step 1: Request Reset Code
-  const handleRequestReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) {
-      setError("Silakan masukkan alamat email yang terdaftar.");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setMessage(null);
-    setWarning(null);
-
-    try {
-      const res = await authService.forgotPassword(email.trim());
-      setMessage(res.message || "Kode verifikasi telah dikirim ke email Anda.");
-      if (res.warning) {
-        setWarning(res.warning);
-      }
-      if (res.devCode) {
-        setDevCode(res.devCode);
-        setToken(res.devCode);
-      } else {
-        setDevCode(null);
-        setToken("");
-      }
-      setStep("reset");
-      setCooldown(60);
-    } catch (err: any) {
-      setError(err.message || "Gagal memproses permintaan reset kata sandi.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Step 2: Verify Code and Update Password
-  const handleConfirmReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token.trim()) {
-      setError("Silakan masukkan kode verifikasi 6 digit.");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setError("Kata sandi baru minimal 6 karakter.");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError("Konfirmasi kata sandi tidak cocok.");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await authService.resetPassword(token.trim(), newPassword);
-      setStep("done");
-    } catch (err: any) {
-      setError(err.message || "Kode verifikasi tidak valid atau telah kedaluwarsa.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    step,
+    setStep,
+    email,
+    setEmail,
+    token,
+    setToken,
+    newPassword,
+    setNewPassword,
+    confirmPassword,
+    setConfirmPassword,
+    showPassword,
+    setShowPassword,
+    isLoading,
+    error,
+    message,
+    warning,
+    devCode,
+    cooldown,
+    handleResetModalState,
+    handleRequestReset,
+    handleConfirmReset,
+  } = useForgotPassword({
+    initialEmail,
+    initialToken,
+    onClose,
+  });
 
   return (
     <Modal
@@ -142,7 +56,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
       hideHeader
       className="rounded-2xl border border-slate-200/90 bg-white/98 shadow-[0_24px_50px_-12px_rgba(15,23,42,0.18)] p-6 sm:p-7 text-slate-900"
     >
-      {/* Custom Header: Clean, Typographic, No Icons */}
+      {/* Custom Header */}
       <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 mb-5">
         <div>
           <div className="text-[11px] font-semibold tracking-wider text-slate-600 uppercase mb-1">
