@@ -43,6 +43,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
   const [showMenu, setShowMenu] = useState(false);
   const [isDragged, setIsDragged] = useState(false);
   const [openUpwards, setOpenUpwards] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -133,6 +134,12 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
       draggable={isDesktop}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onDoubleClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       className={`group relative rounded-2xl bg-white border border-slate-200/80 p-3 transition-all duration-300 ease-out hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] hover:border-slate-300/90 hover:bg-white select-none ${
         isDesktop ? "cursor-grab active:cursor-grabbing" : ""
       } ${
@@ -159,11 +166,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
 
           {/* Task Title */}
           <h4
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(task);
-            }}
-            className={`text-xs font-bold text-slate-900 cursor-pointer hover:text-indigo-600 transition-colors truncate flex-1 ${
+            className={`text-xs font-bold text-slate-900 transition-colors truncate flex-1 select-none ${
               task.status === "done" ? "line-through text-slate-400 font-medium" : ""
             }`}
           >
@@ -297,7 +300,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
       {/* 2. Expandable Body Details (Smoothly reveals and expands on Hover or when Menu is open) */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          showMenu
+          isHovered || showMenu
             ? "max-h-96 opacity-100 mt-2.5 pt-2.5 border-t border-slate-100"
             : "max-h-0 opacity-0 group-hover:max-h-96 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-2.5 group-hover:border-t group-hover:border-slate-100"
         }`}
