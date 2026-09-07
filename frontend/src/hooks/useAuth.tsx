@@ -4,6 +4,18 @@ import { authService, RegisterResponse, AuthResponse } from "../services/authSer
 
 import { googleLogout } from "@react-oauth/google";
 
+const clearAiChatStorage = () => {
+  try {
+    Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith("zalde_ai_chat_history")) {
+        localStorage.removeItem(k);
+      }
+    });
+  } catch (e) {
+    // Ignored
+  }
+};
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -49,6 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Session expired or invalid token:", err);
         localStorage.removeItem("auth_token");
         sessionStorage.removeItem("auth_token");
+        clearAiChatStorage();
         setToken(null);
         setUser(null);
       } finally {
@@ -103,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     localStorage.removeItem("auth_token");
     sessionStorage.removeItem("auth_token");
+    clearAiChatStorage();
     setToken(null);
     setUser(null);
   };

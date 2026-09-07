@@ -162,22 +162,22 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
         </div>
 
         {/* TAB 1: Zalde AI Copilot */}
-        {currentTab === "ai" && (
+        <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${currentTab === "ai" ? "" : "hidden"}`}>
           <AiChatTab
             onOpenTaskModal={onOpenTaskModal}
             clearTrigger={clearTrigger}
           />
-        )}
+        </div>
 
         {/* TAB 2: Diskusi Tugas (Collaboration Chat) */}
-        {currentTab === "task_chat" && (
+        <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${currentTab === "task_chat" ? "" : "hidden"}`}>
           <TaskDiscussionTab
             activeTaskForChat={activeTaskForChat}
             tasks={tasks}
             onSelectTaskForChat={onSelectTaskForChat}
-            isOpen={isOpen}
+            isOpen={isOpen && currentTab === "task_chat"}
           />
-        )}
+        </div>
       </aside>
     </>
   );
