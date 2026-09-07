@@ -1,10 +1,19 @@
 import React from "react";
-import { ArrowRight, Zap, Search, GripHorizontal, RefreshCw, Check } from "lucide-react";
+import { ArrowRight, Zap, Search, GripHorizontal, RefreshCw, Check, Mail, Calendar } from "lucide-react";
 
 interface AuthHeroProps {
   showForm: boolean;
   onShowForm: () => void;
 }
+
+const HERO_FEATURES = [
+  { label: "AI Integrated", icon: Zap, color: "text-indigo-400" },
+  { label: "Semantic Search", icon: Search, color: "text-sky-400" },
+  { label: "Drag & Drop", icon: GripHorizontal, color: "text-amber-400" },
+  { label: "Realtime Sync", icon: RefreshCw, color: "text-emerald-400" },
+  { label: "Auto Notif Email H-3", icon: Mail, color: "text-rose-400" },
+  { label: "Google, Apple & Outlook Cal", icon: Calendar, color: "text-blue-400" },
+];
 
 export const AuthHero: React.FC<AuthHeroProps> = ({ showForm, onShowForm }) => {
   return (
@@ -45,16 +54,23 @@ export const AuthHero: React.FC<AuthHeroProps> = ({ showForm, onShowForm }) => {
         <div className={`flex flex-col ${showForm ? "w-full" : "items-center md:items-end w-full max-w-fit mx-auto"}`}>
           
           {/* Feature Badges */}
-          <div className={`flex flex-wrap gap-2.5 mb-8 transition-all duration-700 ${showForm ? "" : "justify-center pt-2"}`}>
-            {["AI Integrated", "Semantic Search", "Drag & Drop", "Realtime Sync"].map((feat, i) => (
-              <span key={i} className={`rounded-lg glass-pill font-medium text-slate-200 flex items-center gap-1.5 hover:bg-white/10 transition-all ${showForm ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"}`}>
-                {i === 0 && <Zap className="w-3.5 h-3.5 text-indigo-400" />}
-                {i === 1 && <Search className="w-3.5 h-3.5 text-sky-400" />}
-                {i === 2 && <GripHorizontal className="w-3.5 h-3.5 text-amber-400" />}
-                {i === 3 && <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />}
-                {feat}
-              </span>
-            ))}
+          <div className={`flex flex-wrap gap-2 mb-6 transition-all duration-700 ${showForm ? "gap-1.5 mb-4" : "justify-center max-w-2xl pt-1"}`}>
+            {HERO_FEATURES.map((feat, i) => {
+              const Icon = feat.icon;
+              return (
+                <span 
+                  key={i} 
+                  className={`rounded-lg glass-pill font-medium text-slate-200 flex items-center gap-1.5 hover:bg-white/10 transition-all border border-white/10 ${
+                    showForm 
+                      ? "px-2.5 py-1 text-[11px]" 
+                      : "px-3 py-1.5 text-xs sm:text-[12.5px]"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${feat.color} shrink-0`} />
+                  <span>{feat.label}</span>
+                </span>
+              );
+            })}
           </div>
           
           {/* Start Button when form is hidden */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useGoogleLogin } from "@react-oauth/google";
-import { AlertCircle, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, User, ArrowRight } from "lucide-react";
+import { AlertCircle, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, User, ArrowRight, Calendar } from "lucide-react";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
 import { VerifyEmailModal } from "./VerifyEmailModal";
 
@@ -299,10 +299,23 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
           
         </div>
 
-        {/* Security Badge */}
-        <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span className="">Dilindungi Enkripsi End-to-End & JWT Auth</span>
+        {/* Security & Feature Badges */}
+        <div className="mt-5 flex flex-col items-center justify-center gap-1.5">
+          <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Dilindungi Enkripsi End-to-End & JWT Auth</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[10.5px] text-slate-500 font-medium">
+            <span className="inline-flex items-center gap-1">
+              <Mail className="w-3 h-3 text-rose-500" />
+              Auto Notif Email H-3
+            </span>
+            <span>•</span>
+            <span className="inline-flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-blue-500" />
+              Google, Apple & Outlook Cal
+            </span>
+          </div>
         </div>
       </div>
 
