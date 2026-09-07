@@ -52,11 +52,11 @@ todo-list-zalde/
 ├── backend/                    # Bun + Elysia.js + Drizzle ORM + pgvector
 │   ├── src/
 │   │   ├── config/             # DB (Neon), AI (Gemini client), & Env config
-│   │   ├── controllers/        # Auth, Task, Category, AI, Calendar, & Collaboration endpoints
+│   │   ├── controllers/        # Auth, Password, Task, Subtask, Category, AI, Calendar, Collaboration, & Cron
 │   │   ├── db/                 # Database Seeder (seed.ts: demo user, tasks, subtasks & embeddings)
 │   │   ├── middlewares/        # Scoped JWT Auth & Centralized Error handlers
 │   │   ├── models/             # Drizzle PostgreSQL schemas (users, tasks, categories, embeddings, collaborators, chats)
-│   │   ├── services/           # Auth, Task, Category, Calendar (iCal RFC 5545), Embedding, RAG, & Collaboration
+│   │   ├── services/           # Modular services (Auth, Verification, Reset, Google, Tasks, iCal, RAG, Reminders, Collab)
 │   │   ├── utils/              # Standardized response formatters (ApiResponse)
 │   │   └── index.ts            # Elysia Server & Swagger API entry point
 │   ├── test/                   # Bun unit & E2E integration test suites (auth, collaboration, cron, e2e, rag)
@@ -68,12 +68,12 @@ todo-list-zalde/
 │   ├── public/                 # Static assets & icons
 │   ├── src/
 │   │   ├── components/         # UI Elements, Layout, Settings, Tasks Kanban, AI Drawer
-│   │   │   ├── ai/             # AiChatDrawer (Dual-Tab: Zalde AI Copilot & Task Discussion Chat)
-│   │   │   ├── auth/           # AuthHero & AuthForm (Login, Register, OTP & Reset)
+│   │   │   ├── ai/             # AiChatDrawer, AiChatTab, TaskDiscussionTab, subkomponen & useAiChat
+│   │   │   ├── auth/           # AuthHero, AuthForm, GoogleAuthButton, VerifyEmailModal, ForgotPasswordModal & subkomponen
 │   │   │   ├── layout/         # Navbar, SettingsModal (Modal container dialog)
 │   │   │   ├── settings/       # CalendarTab (Google/Apple sync) & WhatsAppTab (WA reminder)
 │   │   │   ├── stats/          # StatOverview & progress cards
-│   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar, TaskCollaborationSection
+│   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar, & subkomponen (card/, modal/)
 │   │   │   └── ui/             # Button, Input, Badge, Modal, Skeleton, BrandDots
 │   │   ├── hooks/              # useAuth (remember me session), useTasks custom state hooks
 │   │   ├── pages/              # Dashboard (Lazy-loaded Kanban) & AuthPage (Authentication)
@@ -209,7 +209,7 @@ npm run test:all
 | **Backend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
 | **Frontend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
 | **Frontend Build** | `tsc -b && vite build` | ✅ PASS | Production bundle terkompresi (~88 kB Gzip) |
-| **API & Security** | `backend/test/auth.test.ts` | ✅ PASS (9/9) | Standardized JSON Response, Auth Guard, OTP Verification, Password Reset |
+| **API & Security** | `backend/test/auth.test.ts` | ✅ PASS (10/10) | Standardized JSON Response, Auth Guard, OTP Verification Flow, Password Reset |
 | **Task Collaboration & Chat** | `backend/test/collaboration.test.ts` | ✅ PASS (9/9) | Invite Code, Join Flow, Realtime Status Sync, Chat Discussion, Leave Task |
 | **Backend E2E Flow** | `backend/test/e2e.test.ts` | ✅ PASS (4/4) | Register ➔ Login ➔ Task & Subtasks CRUD ➔ Stats |
 | **RAG & Vector Search** | `backend/test/rag.test.ts` | ✅ PASS (2/2) | Text Chunking & L2-Normalized Vector Embeddings |
@@ -232,6 +232,7 @@ test\auth.test.ts:
 ✓ API & Response Formatting Tests > should complete full password reset flow with valid token
 ✓ API & Response Formatting Tests > should reject registration with disposable email domain
 ✓ API & Response Formatting Tests > should reject registration with nonexistent email domain
+✓ API & Response Formatting Tests > should enforce email OTP verification flow on registration
 
 test\collaboration.test.ts:
 ✓ Task Collaboration & Discussion Chat Flow > should register and verify User A (Owner) and User B (Collaborator)
@@ -277,7 +278,7 @@ Ran 29 tests across 5 files.
 Running 1 test using 1 worker
 
 [1/1] [chromium] › tests\todo-flow.spec.ts:4:3 › Zalde Todo E2E User Flow › User login and task management flow
-  1 passed (10.7s)
+  1 passed (8.0s)
 ```
 
 ---
@@ -290,3 +291,4 @@ Running 1 test using 1 worker
 - [x] **Fase 4**: Automated CI/CD Data Pipeline & Production Vercel + Neon DB Deployment.
 - [x] **Fase 5**: Integrasi Kalender RFC 5545 (Google, Apple, Outlook), Google Single Sign-On (SSO), Auto Notification Email Reminder H-3 via Cron Job, & Glassmorphism Hero Badges.
 - [x] **Fase 6**: Kolaborasi Tim Realtime, Invite Link Instan, Multi-user Task Sharing, & 1-Tab Chat Diskusi Terpadu pada AI Drawer.
+- [x] **Fase 7**: Modular SRP Architecture & Zero-Monolith Standards (Colocated subcomponents & custom hooks, strict line limits & 100% type-safe).
