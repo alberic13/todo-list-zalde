@@ -1,42 +1,16 @@
-import { eq, and, desc, asc, ilike, or, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, ilike, or, inArray } from "drizzle-orm";
 import { db } from "../config/db";
-import { tasks, subtasks, categories, taskCollaborators } from "../models/schema";
+import { tasks, subtasks, taskCollaborators } from "../models/schema";
 import { EmbeddingService } from "./embedding.service";
 import { SubtaskService } from "./subtask.service";
+import { TaskStatsService } from "./taskStats.service";
+import { TaskFilters, CreateTaskDTO, UpdateTaskDTO } from "./task.types";
 
-export interface TaskFilters {
-  status?: string;
-  priority?: string;
-  categoryId?: string;
-  search?: string;
-  sortBy?: "dueDate" | "priority" | "createdAt" | "orderIndex";
-  sortOrder?: "asc" | "desc";
-}
+export * from "./task.types";
 
-export interface CreateTaskDTO {
-  title: string;
-  description?: string;
-  categoryId?: string;
-  status?: string;
-  priority?: string;
-  dueDate?: string | null;
-  orderIndex?: number;
-  subtaskTitles?: string[];
-}
-
-export interface UpdateTaskDTO {
-  title?: string;
-  description?: string;
-  categoryId?: string | null;
-  status?: string;
-  priority?: string;
-  dueDate?: string | null;
-  orderIndex?: number;
-}
-
+// ponytail: core task service. subtasks and stats delegated to dedicated sub-services.
 export class TaskService {
   static async list(userId: string, filters: TaskFilters = {}) {
-    // 1. Find task IDs where user is invited as collaborator
     const userCollabs = await db.query.taskCollaborators.findMany({
       where: eq(taskCollaborators.userId, userId),
       columns: { taskId: true },
@@ -50,23 +24,13 @@ export class TaskService {
 
     const conditions = [accessCondition];
 
-    if (filters.status && filters.status !== "all") {
-      conditions.push(eq(tasks.status, filters.status));
-    }
-
-    if (filters.priority && filters.priority !== "all") {
-      conditions.push(eq(tasks.priority, filters.priority));
-    }
-
-    if (filters.categoryId && filters.categoryId !== "all") {
-      conditions.push(eq(tasks.categoryId, filters.categoryId));
-    }
+    if (filters.status && filters.status !== "all") conditions.push(eq(tasks.status, filters.status));
+    if (filters.priority && filters.priority !== "all") conditions.push(eq(tasks.priority, filters.priority));
+    if (filters.categoryId && filters.categoryId !== "all") conditions.push(eq(tasks.categoryId, filters.categoryId));
 
     if (filters.search && filters.search.trim()) {
       const q = `%${filters.search.trim()}%`;
-      conditions.push(
-        or(ilike(tasks.title, q), ilike(tasks.description, q))!
-      );
+      conditions.push(or(ilike(tasks.title, q), ilike(tasks.description, q))!);
     }
 
     let orderByClause = desc(tasks.createdAt);
@@ -82,19 +46,9 @@ export class TaskService {
       where: and(...conditions),
       with: {
         category: true,
-        user: {
-          columns: { id: true, name: true, email: true },
-        },
-        subtasks: {
-          orderBy: [asc(subtasks.createdAt)],
-        },
-        collaborators: {
-          with: {
-            user: {
-              columns: { id: true, name: true, email: true },
-            },
-          },
-        },
+        user: { columns: { id: true, name: true, email: true } },
+        subtasks: { orderBy: [asc(subtasks.createdAt)] },
+        collaborators: { with: { user: { columns: { id: true, name: true, email: true } } } },
       },
       orderBy: [orderByClause, desc(tasks.createdAt)],
     });
@@ -111,19 +65,9 @@ export class TaskService {
       where: eq(tasks.id, id),
       with: {
         category: true,
-        user: {
-          columns: { id: true, name: true, email: true },
-        },
-        subtasks: {
-          orderBy: [asc(subtasks.createdAt)],
-        },
-        collaborators: {
-          with: {
-            user: {
-              columns: { id: true, name: true, email: true },
-            },
-          },
-        },
+        user: { columns: { id: true, name: true, email: true } },
+        subtasks: { orderBy: [asc(subtasks.createdAt)] },
+        collaborators: { with: { user: { columns: { id: true, name: true, email: true } } } },
       },
     });
 
@@ -131,7 +75,6 @@ export class TaskService {
 
     const isOwner = task.userId === userId;
     const isCollaborator = isOwner || (task.collaborators || []).some((c) => c.userId === userId);
-
     if (!isCollaborator) return null;
 
     return {
@@ -180,9 +123,7 @@ export class TaskService {
   }
 
   static async update(id: string, userId: string, data: UpdateTaskDTO) {
-    const updatePayload: Record<string, any> = {
-      updatedAt: new Date(),
-    };
+    const updatePayload: Record<string, any> = { updatedAt: new Date() };
 
     if (data.title !== undefined) updatePayload.title = data.title.trim();
     if (data.description !== undefined) updatePayload.description = data.description?.trim() || null;
@@ -200,7 +141,6 @@ export class TaskService {
 
     if (!updated) return null;
 
-    // Await re-embedding sync to guarantee execution in serverless environments
     await EmbeddingService.syncTaskEmbedding(id, userId).catch((err) =>
       console.error("Auto re-embedding sync error:", err)
     );
@@ -227,7 +167,6 @@ export class TaskService {
       .returning();
 
     if (updated) {
-      // ponytail: non-blocking embedding sync to keep Kanban drag-drop instant. upgrade to background queue if serverless execution freeze drops tasks.
       EmbeddingService.syncTaskEmbedding(id, task.userId).catch(console.error);
     }
 
@@ -235,8 +174,6 @@ export class TaskService {
   }
 
   static async delete(id: string, userId: string) {
-    // Only owner can delete task
-    // Remove embedding first
     await EmbeddingService.removeTaskEmbedding(id);
 
     const [deleted] = await db
@@ -248,33 +185,9 @@ export class TaskService {
   }
 
   static async getStats(userId: string) {
-    const stats = await db
-      .select({
-        total: sql<number>`count(*)`,
-        todo: sql<number>`count(*) filter (where ${tasks.status} = 'todo')`,
-        inProgress: sql<number>`count(*) filter (where ${tasks.status} = 'in_progress')`,
-        done: sql<number>`count(*) filter (where ${tasks.status} = 'done')`,
-        overdue: sql<number>`count(*) filter (where ${tasks.status} != 'done' and ${tasks.dueDate} < now())`,
-      })
-      .from(tasks)
-      .where(eq(tasks.userId, userId));
-
-    const s = stats[0] || { total: 0, todo: 0, inProgress: 0, done: 0, overdue: 0 };
-    const total = Number(s.total) || 0;
-    const done = Number(s.done) || 0;
-    const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
-
-    return {
-      total,
-      todo: Number(s.todo) || 0,
-      inProgress: Number(s.inProgress) || 0,
-      done,
-      overdue: Number(s.overdue) || 0,
-      completionRate,
-    };
+    return TaskStatsService.get(userId);
   }
 
-  // Subtask operations (delegated to SubtaskService)
   static async addSubtask(taskId: string, userId: string, title: string) {
     return SubtaskService.add(taskId, userId, title);
   }
