@@ -1,14 +1,14 @@
 import React from "react";
-import { Task, Category, TaskPriority, TaskStatus } from "../../types";
+import { Task, Category, TaskStatus } from "../../types";
 import { Modal } from "../ui/Modal";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
-import { Calendar, ExternalLink, Users } from "lucide-react";
-import { calendarService } from "../../services/calendarService";
+import { Users } from "lucide-react";
 import { CreateTaskPayload, UpdateTaskPayload } from "../../services/taskService";
+import { TaskBasicInfoSection } from "./modal/TaskBasicInfoSection";
+import { TaskStatusPriorityFields } from "./modal/TaskStatusPriorityFields";
 import { TaskCategorySection } from "./modal/TaskCategorySection";
 import { TaskSubtasksSection } from "./modal/TaskSubtasksSection";
 import { TaskCollaborationSection } from "./modal/TaskCollaborationSection";
+import { TaskModalActions } from "./modal/TaskModalActions";
 import { useTaskModalForm } from "./modal/useTaskModalForm";
 
 export interface TaskModalProps {
@@ -96,72 +96,24 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </div>
         )}
 
-        {/* Title */}
-        <Input
-          label="Judul Tugas *"
-          placeholder="Misal: Buat mockup desain Figma halaman checkout"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          autoFocus={isOwner}
-          disabled={!isOwner}
+        {/* Title and Description */}
+        <TaskBasicInfoSection
+          isOwner={isOwner}
+          title={title}
+          description={description}
+          onChangeTitle={setTitle}
+          onChangeDescription={setDescription}
         />
-
-        {/* Description */}
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">
-            Deskripsi (Opsional)
-          </label>
-          <textarea
-            rows={3}
-            placeholder="Tambahkan catatan detail tugas..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            disabled={!isOwner}
-            className={`w-full rounded-xl border text-sm px-3.5 py-2.5 transition-all resize-none shadow-sm ${
-              !isOwner
-                ? "bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed"
-                : "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
-            }`}
-          />
-        </div>
 
         {/* Grid: Priority, Status, Category, Due Date */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          {/* Priority */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
-              Prioritas
-            </label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold"
-            >
-              <option value="urgent">🔴 Urgent</option>
-              <option value="high">🟠 Tinggi</option>
-              <option value="medium">🔵 Sedang</option>
-              <option value="low">⚪ Rendah</option>
-            </select>
-          </div>
+          <TaskStatusPriorityFields
+            priority={priority}
+            status={status}
+            onChangePriority={setPriority}
+            onChangeStatus={setStatus}
+          />
 
-          {/* Status */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
-              Status
-            </label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold"
-            >
-              <option value="todo">Belum Mulai</option>
-              <option value="in_progress">Sedang Berjalan</option>
-              <option value="done">Selesai</option>
-            </select>
-          </div>
-
-          {/* Category Section */}
           <TaskCategorySection
             categories={categories}
             categoryId={categoryId}
@@ -207,37 +159,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         )}
 
         {/* Modal Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
-          {dueDate ? (
-            <a
-              href={calendarService.generateGoogleCalendarUrl({
-                title: title || "Tugas Tanpa Judul",
-                description,
-                dueDate,
-                priority,
-              })}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-indigo-600 transition shadow-sm group whitespace-nowrap shrink-0"
-              title="Tambahkan langsung tugas ini ke Google Calendar Anda"
-            >
-              <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>Ke Google Calendar</span>
-              <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-indigo-600 transition-colors shrink-0" />
-            </a>
-          ) : (
-            <div />
-          )}
-
-          <div className="flex items-center justify-end gap-2 shrink-0 sm:ml-auto">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Batal
-            </Button>
-            <Button type="submit" isLoading={isLoading}>
-              {taskToEdit ? "Simpan Perubahan" : "Buat Tugas"}
-            </Button>
-          </div>
-        </div>
+        <TaskModalActions
+          isEdit={Boolean(taskToEdit)}
+          isLoading={isLoading}
+          dueDate={dueDate}
+          title={title}
+          description={description}
+          priority={priority}
+          onClose={onClose}
+        />
       </form>
     </Modal>
   );
