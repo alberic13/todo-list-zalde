@@ -46,6 +46,19 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
+  // ponytail: matchMedia check covers mobile/desktop split; add touch-action or dnd-kit when complex touch gestures required
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 768px)").matches : true
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia("(min-width: 768px)");
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+
   useEffect(() => {
     if (!showMenu) return;
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -84,6 +97,10 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
   const availableMoveOptions = MOVE_STATUS_OPTIONS.filter((opt) => opt.status !== task.status);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!isDesktop) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData("text/plain", task.id);
     e.dataTransfer.effectAllowed = "move";
     setIsDragged(true);
@@ -108,10 +125,12 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
 
   return (
     <div
-      draggable
+      draggable={isDesktop}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      className={`group relative rounded-2xl bg-white border border-slate-200/80 p-3 transition-all duration-300 ease-out hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] hover:border-slate-300/90 hover:bg-white cursor-grab active:cursor-grabbing select-none ${
+      className={`group relative rounded-2xl bg-white border border-slate-200/80 p-3 transition-all duration-300 ease-out hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] hover:border-slate-300/90 hover:bg-white select-none ${
+        isDesktop ? "cursor-grab active:cursor-grabbing" : ""
+      } ${
         isDragged
           ? "opacity-40 scale-95 border-indigo-400 shadow-lg"
           : "hover:-translate-y-0.5"
@@ -120,8 +139,8 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
       {/* 1. Compact Header Row (Always Visible as a Clean List Item) */}
       <div className="flex items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* Drag Grip Handle */}
-          <div className="text-slate-300 group-hover:text-slate-500 transition-colors shrink-0">
+          {/* Drag Grip Handle - Desktop only */}
+          <div className="hidden md:block text-slate-300 group-hover:text-slate-500 transition-colors shrink-0">
             <GripVertical className="w-3.5 h-3.5" />
           </div>
 
