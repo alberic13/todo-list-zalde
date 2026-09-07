@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../../hooks/useAuth";
+import React from "react";
 import { AlertCircle, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, User, ArrowRight } from "lucide-react";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
 import { VerifyEmailModal } from "./VerifyEmailModal";
+import { useAuthForm } from "./useAuthForm";
 
 interface AuthFormProps {
   showForm: boolean;
@@ -11,79 +11,14 @@ interface AuthFormProps {
 }
 
 export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
-  const { login, register, loginWithGoogle, setAuthSession } = useAuth();
-  const [isRegister, setIsRegister] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showForgotModal, setShowForgotModal] = useState(false);
-  const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [verifyEmail, setVerifyEmail] = useState("");
-  const [verifyDevCode, setVerifyDevCode] = useState<string | undefined>(undefined);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [resetTokenFromUrl, setResetTokenFromUrl] = useState("");
+  const {
+    isRegister, name, setName, email, setEmail, password, setPassword,
+    error, isLoading, showPassword, setShowPassword, rememberMe, setRememberMe,
+    showForgotModal, setShowForgotModal, showVerifyModal, setShowVerifyModal,
+    verifyEmail, verifyDevCode, resetTokenFromUrl, handleTabChange,
+    handleSubmit, handleGoogleSuccess, handleGoogleError, handleForgotSuccess, handleVerifySuccess,
+  } = useAuthForm();
 
-  // Detect ?reset_token= parameter from email 1-click link
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("reset_token") || params.get("token");
-    if (token) {
-      setResetTokenFromUrl(token);
-      setShowForgotModal(true);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
-  const handleTabChange = (isReg: boolean) => {
-    setIsRegister(isReg);
-    setError(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      if (isRegister) {
-        if (!name.trim()) throw new Error("Nama lengkap wajib diisi");
-        const res = await register(name.trim(), email.trim(), password, rememberMe);
-        if (res.needVerification) {
-          setVerifyEmail(email.trim());
-          setVerifyDevCode(res.devCode);
-          setShowVerifyModal(true);
-        }
-      } else {
-        await login(email.trim(), password, rememberMe);
-      }
-    } catch (err: any) {
-      if (
-        err.data?.needVerification ||
-        err.message?.includes("belum aktif") ||
-        err.message?.includes("belum diverifikasi")
-      ) {
-        setVerifyEmail(email.trim());
-        setShowVerifyModal(true);
-      } else {
-        setError(err instanceof Error ? err.message : "Gagal melakukan autentikasi");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSuccess = async (accessToken: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      await loginWithGoogle(accessToken, rememberMe);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <section 
@@ -104,10 +39,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
 
       {/* Center Auth Box Container */}
       <div className="w-full max-w-[430px] mx-auto my-auto py-2">
-        {/* Auth Card */}
-        <div 
-          className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 sm:px-8 sm:py-6 border border-white/90 shadow-[0_25px_50px_-12px_rgba(15,23,42,0.15),0_12px_24px_-8px_rgba(99,102,241,0.08),0_0_0_1px_rgba(226,232,240,0.8)]" 
-        >
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 sm:px-8 sm:py-6 border border-white/90 shadow-[0_25px_50px_-12px_rgba(15,23,42,0.15),0_12px_24px_-8px_rgba(99,102,241,0.08),0_0_0_1px_rgba(226,232,240,0.8)]">
           {/* Tab Segment Switcher */}
           <div aria-label="Mode Masuk" className="p-1 bg-slate-100/90 rounded-2xl flex items-center mb-4 border border-slate-200/50" role="tablist">
             <button 
@@ -140,7 +72,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
 
           {/* Sign-In Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Nama Input Field (Register Only) */}
             {isRegister && (
               <div className="animate-in fade-in slide-in-from-top-4 duration-300">
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5" htmlFor="name">Nama</label>
@@ -151,7 +82,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
                   <input 
                     id="name" 
                     name="name" 
-                    type="text"
+                    type="text" 
                     required 
                     placeholder="input nama"
                     value={name}
@@ -162,7 +93,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
               </div>
             )}
 
-            {/* Email Input Field */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5" htmlFor="email">Alamat Email</label>
               <div className="relative rounded-xl shadow-sm">
@@ -182,11 +112,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
               </div>
             </div>
 
-            {/* Password Input Field */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-slate-700" htmlFor="password">Kata Sandi</label>
-              </div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5" htmlFor="password">Kata Sandi</label>
               <div className="relative rounded-xl shadow-sm">
                 <div className="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                   <Lock className="h-4 w-4" />
@@ -212,7 +139,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
               </div>
             </div>
 
-            {/* Utilities: Remember & Forgot */}
             <div className="flex items-center justify-between text-xs pt-1">
               <label className="flex items-center select-none text-slate-600 cursor-pointer">
                 <input
@@ -232,7 +158,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
               </button>
             </div>
 
-            {/* Submit Button */}
             <button 
               type="submit" 
               disabled={isLoading}
@@ -245,7 +170,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-4">
             <div aria-hidden="true" className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200"></div>
@@ -255,49 +179,37 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
             </div>
           </div>
 
-          {/* Google SSO Button */}
           <GoogleAuthButton
             onSuccess={handleGoogleSuccess}
-            onError={(msg) => setError(msg)}
+            onError={handleGoogleError}
             disabled={isLoading}
           />
         </div>
 
-        {/* Security Badge */}
         <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
           <span>Dilindungi Enkripsi End-to-End & JWT Auth</span>
         </div>
       </div>
 
-      {/* Mobile Friendly Bottom Notice */}
       <div className="text-center text-xs text-slate-400 lg:hidden pt-4">
         © 2026 Zalde Productivity Suite. Seluruh hak cipta dilindungi.
       </div>
 
-      {/* Forgot Password Modal */}
       <ForgotPasswordModal
         isOpen={showForgotModal}
         onClose={() => setShowForgotModal(false)}
         initialEmail={email}
         initialToken={resetTokenFromUrl}
-        onSuccessLogin={(resetEmail) => {
-          setEmail(resetEmail);
-          setIsRegister(false);
-          setShowForgotModal(false);
-        }}
+        onSuccessLogin={handleForgotSuccess}
       />
 
-      {/* Verify Email OTP Modal */}
       <VerifyEmailModal
         isOpen={showVerifyModal}
         onClose={() => setShowVerifyModal(false)}
         email={verifyEmail}
         initialDevCode={verifyDevCode}
-        onSuccess={(authData) => {
-          setAuthSession(authData, rememberMe);
-          setShowVerifyModal(false);
-        }}
+        onSuccess={handleVerifySuccess}
       />
     </section>
   );
