@@ -108,8 +108,8 @@ export function useTasks() {
         if (!prev) return fetchedStats;
         if (
           prev.total !== fetchedStats.total ||
-          prev.completed !== fetchedStats.completed ||
-          prev.pending !== fetchedStats.pending ||
+          prev.done !== fetchedStats.done ||
+          prev.todo !== fetchedStats.todo ||
           prev.inProgress !== fetchedStats.inProgress
         ) {
           return fetchedStats;
