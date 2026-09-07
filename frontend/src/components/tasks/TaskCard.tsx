@@ -83,8 +83,13 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
     e.stopPropagation();
     if (!showMenu && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
+      const scrollParent = triggerRef.current.closest('.overflow-y-auto');
+      const parentRect = scrollParent ? scrollParent.getBoundingClientRect() : null;
       const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenUpwards(spaceBelow < 230);
+      const spaceAboveInParent = parentRect ? rect.top - parentRect.top : rect.top;
+
+      // Only open upwards if cramped below AND there is enough headroom inside scroll container
+      setOpenUpwards(spaceBelow < 230 && spaceAboveInParent >= 230);
     }
     setShowMenu((prev) => !prev);
   };
