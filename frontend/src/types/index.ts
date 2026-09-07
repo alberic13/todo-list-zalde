@@ -39,6 +39,7 @@ export interface TaskChatMessage {
   taskId: string;
   userId: string;
   content: string;
+  message?: string;
   createdAt: string;
   user: {
     id: string;

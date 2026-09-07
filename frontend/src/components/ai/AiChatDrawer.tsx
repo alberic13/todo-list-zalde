@@ -197,6 +197,7 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
       id: tempId,
       taskId: activeTaskForChat.id,
       userId: user?.id || "me",
+      content,
       message: content,
       createdAt: new Date().toISOString(),
       user: {
@@ -623,7 +624,7 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                 {msg.user?.name || "Kolaborator"}
                               </p>
                             )}
-                            <div className="whitespace-pre-wrap">{msg.message}</div>
+                            <div className="whitespace-pre-wrap break-words text-xs">{msg.content || msg.message}</div>
                             <p
                               className={`text-[9px] mt-1.5 text-right ${
                                 isMe ? "text-indigo-200" : "text-slate-400"
