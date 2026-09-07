@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useGoogleLogin } from "@react-oauth/google";
 import { AlertCircle, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, User, ArrowRight } from "lucide-react";
+import { GoogleAuthButton } from "./GoogleAuthButton";
 import { ForgotPasswordModal } from "./ForgotPasswordModal";
 import { VerifyEmailModal } from "./VerifyEmailModal";
 
@@ -60,7 +60,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
         await login(email.trim(), password, rememberMe);
       }
     } catch (err: any) {
-      // Jika login ditolak karena akun belum diverifikasi
       if (
         err.data?.needVerification ||
         err.message?.includes("belum aktif") ||
@@ -76,22 +75,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
     }
   };
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        await loginWithGoogle(tokenResponse.access_token, rememberMe);
-      } catch (err: any) {
-        setError(err.message || "Gagal login dengan Google");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    onError: () => {
-      setError("Login Google dibatalkan atau gagal");
-    },
-  });
+  const handleGoogleSuccess = async (accessToken: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await loginWithGoogle(accessToken, rememberMe);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <section 
@@ -103,7 +95,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
       <nav aria-label="Navigasi Autentikasi" className="flex items-center justify-between w-full max-w-md mx-auto">
         <button 
           onClick={onHideForm}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition group py-1"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition group py-1 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-slate-500 group-hover:-translate-x-1 transition-transform" />
           Kembali
@@ -112,9 +104,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
 
       {/* Center Auth Box Container */}
       <div className="w-full max-w-[430px] mx-auto my-auto py-2">
-        
-
-
         {/* Auth Card */}
         <div 
           className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 sm:px-8 sm:py-6 border border-white/90 shadow-[0_25px_50px_-12px_rgba(15,23,42,0.15),0_12px_24px_-8px_rgba(99,102,241,0.08),0_0_0_1px_rgba(226,232,240,0.8)]" 
@@ -124,7 +113,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
             <button 
               aria-selected={!isRegister} 
               onClick={() => handleTabChange(false)}
-              className={`flex-1 py-2 rounded-xl text-xs transition-all ${!isRegister ? 'font-bold text-white bg-[#0F172A] shadow-md' : 'font-semibold text-slate-500 hover:text-slate-800'}`}
+              className={`flex-1 py-2 rounded-xl text-xs transition-all cursor-pointer ${!isRegister ? 'font-bold text-white bg-[#0F172A] shadow-md' : 'font-semibold text-slate-500 hover:text-slate-800'}`}
               role="tab" 
               type="button"
             >
@@ -133,7 +122,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
             <button 
               aria-selected={isRegister} 
               onClick={() => handleTabChange(true)}
-              className={`flex-1 py-2 rounded-xl text-xs transition-all ${isRegister ? 'font-bold text-white bg-[#0F172A] shadow-md' : 'font-semibold text-slate-500 hover:text-slate-800'}`}
+              className={`flex-1 py-2 rounded-xl text-xs transition-all cursor-pointer ${isRegister ? 'font-bold text-white bg-[#0F172A] shadow-md' : 'font-semibold text-slate-500 hover:text-slate-800'}`}
               role="tab" 
               type="button"
             >
@@ -151,7 +140,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
 
           {/* Sign-In Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
-            
             {/* Nama Input Field (Register Only) */}
             {isRegister && (
               <div className="animate-in fade-in slide-in-from-top-4 duration-300">
@@ -216,7 +204,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
                 <button 
                   type="button" 
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute inset-y-0 right-0 pr-3.5 flex items-center focus:outline-none ${showPassword ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`absolute inset-y-0 right-0 pr-3.5 flex items-center focus:outline-none cursor-pointer ${showPassword ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
                   title="Lihat password"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -231,7 +219,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                 />
                 <span className="ml-2 font-medium">Ingat saya</span>
               </label>
@@ -248,7 +236,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 active:scale-[0.99] text-white text-sm font-semibold tracking-wide shadow-lg shadow-slate-900/15 hover:shadow-slate-900/25 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 active:scale-[0.99] text-white text-sm font-semibold tracking-wide shadow-lg shadow-slate-900/15 hover:shadow-slate-900/25 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
               <span>{isLoading ? "Memproses..." : (isRegister ? "Buat Akun" : "Masuk ke Workspace")}</span>
               {!isLoading && (
@@ -267,36 +255,12 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
             </div>
           </div>
 
-          {/* Single Google SSO Button */}
-          <div className="w-full flex justify-center">
-            <button
-              type="button"
-              onClick={() => handleGoogleLogin()}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all shadow-sm active:scale-[0.98] disabled:opacity-50 cursor-pointer"
-            >
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span>Login SSO Google</span>
-            </button>
-          </div>
-          
+          {/* Google SSO Button */}
+          <GoogleAuthButton
+            onSuccess={handleGoogleSuccess}
+            onError={(msg) => setError(msg)}
+            disabled={isLoading}
+          />
         </div>
 
         {/* Security Badge */}
