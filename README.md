@@ -52,14 +52,14 @@ todo-list-zalde/
 ├── backend/                    # Bun + Elysia.js + Drizzle ORM + pgvector
 │   ├── src/
 │   │   ├── config/             # DB (Neon), AI (Gemini client), & Env config
-│   │   ├── controllers/        # Auth, Task, Category, AI, & Calendar endpoints
+│   │   ├── controllers/        # Auth, Task, Category, AI, Calendar, & Collaboration endpoints
 │   │   ├── db/                 # Database Seeder (seed.ts: demo user, tasks, subtasks & embeddings)
 │   │   ├── middlewares/        # Scoped JWT Auth & Centralized Error handlers
-│   │   ├── models/             # Drizzle PostgreSQL schemas (users, tasks, categories, embeddings)
-│   │   ├── services/           # Auth, Task, Category, Calendar (iCal RFC 5545), Embedding, & RAG
+│   │   ├── models/             # Drizzle PostgreSQL schemas (users, tasks, categories, embeddings, collaborators, chats)
+│   │   ├── services/           # Auth, Task, Category, Calendar (iCal RFC 5545), Embedding, RAG, & Collaboration
 │   │   ├── utils/              # Standardized response formatters (ApiResponse)
 │   │   └── index.ts            # Elysia Server & Swagger API entry point
-│   ├── test/                   # Bun unit & E2E integration test suites (auth, e2e, rag)
+│   ├── test/                   # Bun unit & E2E integration test suites (auth, collaboration, cron, e2e, rag)
 │   ├── drizzle/                # Generated Drizzle SQL migrations
 │   ├── drizzle.config.ts       # Drizzle Kit migration configuration
 │   ├── vercel.json             # Backend Bun runtime serverless configuration
@@ -68,16 +68,16 @@ todo-list-zalde/
 │   ├── public/                 # Static assets & icons
 │   ├── src/
 │   │   ├── components/         # UI Elements, Layout, Settings, Tasks Kanban, AI Drawer
-│   │   │   ├── ai/             # AiChatDrawer (WhatsApp share & contextual copilot)
+│   │   │   ├── ai/             # AiChatDrawer (Dual-Tab: Zalde AI Copilot & Task Discussion Chat)
 │   │   │   ├── auth/           # AuthHero & AuthForm (Login, Register, OTP & Reset)
 │   │   │   ├── layout/         # Navbar, SettingsModal (Modal container dialog)
 │   │   │   ├── settings/       # CalendarTab (Google/Apple sync) & WhatsAppTab (WA reminder)
 │   │   │   ├── stats/          # StatOverview & progress cards
-│   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar
+│   │   │   ├── tasks/          # KanbanBoard, TaskCard, TaskList, TaskModal, FilterBar, TaskCollaborationSection
 │   │   │   └── ui/             # Button, Input, Badge, Modal, Skeleton, BrandDots
 │   │   ├── hooks/              # useAuth (remember me session), useTasks custom state hooks
 │   │   ├── pages/              # Dashboard (Lazy-loaded Kanban) & AuthPage (Authentication)
-│   │   ├── services/           # API client handlers (ai, auth, category, task, calendar)
+│   │   ├── services/           # API client handlers (ai, auth, category, task, calendar, collaboration)
 │   │   ├── types/              # TypeScript definitions & data contracts
 │   │   ├── utils/              # Date formatters & styling helpers
 │   │   ├── App.tsx             # Main App router & auth state wrapper
@@ -133,6 +133,12 @@ todo-list-zalde/
 8. **✨ Responsive Landing Hero & Glass Feature Badges**:
    - **Dynamic Feature Showcase**: Tampilan visual landing page dan form login dilengkapi badge transparan modern (*glassmorphism*): `AI Integrated`, `Semantic Search`, `Drag & Drop`, `Realtime Sync`, `Auto Notif Email H-3`, `Google, Apple & Outlook Cal`, dan `SSO Google`.
    - **Pixel-Perfect Scaling**: Tipografi dan padding dinamis menjaga keseimbangan visual desktop dan mobile tanpa merusak tombol aksi CTA.
+9. **👥 Kolaborasi Tim, Invite Link & Obrolan Terpadu (1-Tab Discussion Chat)**:
+   - **Instant Invite Link & Code**: Pemilik tugas (*owner*) dapat men-generate tautan undangan unik (`/join?code=...`) dan kode invite dalam 1-klik untuk dibagikan ke anggota tim.
+   - **Multi-user Realtime Collaboration**: Rekan tim dapat bergabung langsung sebagai kolaborator, memperbarui status tugas (*Kanban drag-and-drop*), menandai checklist subtasks bersama, serta melihat avatar inisial anggota aktif.
+   - **Akses & Otoritas Aman (Role-based Guard)**: Pemilik tugas memiliki wewenang penuh (termasuk menghapus tugas atau mengeluarkan kolaborator / *kick member*), sementara kolaborator memiliki opsi *Leave Task* tanpa merusak data task owner.
+   - **1-Tab Discussion Chat di AiChatDrawer**: Drawer samping dilengkapi *Dual-Tab Switcher* terpadu: tab **Zalde AI** untuk asisten cerdas RAG dan tab **Diskusi Tugas** untuk ruang obrolan real-time per tugas.
+   - **Konteks Diskusi Terfokus**: Obrolan otomatis terikat dengan tugas aktif yang dipilih, dilengkapi indikator aktivitas tugas (*pulsing green dot*), serta tombol pintas "Buka Chat Diskusi" langsung dari kartu tugas (*TaskCard*) maupun modal detail.
 
 ---
 
@@ -203,7 +209,8 @@ npm run test:all
 | **Backend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
 | **Frontend Typecheck** | `tsc --noEmit` | ✅ PASS | 0 Type Error, 100% Type-Safe |
 | **Frontend Build** | `tsc -b && vite build` | ✅ PASS | Production bundle terkompresi (~88 kB Gzip) |
-| **API & Security** | `backend/test/auth.test.ts` | ✅ PASS (4/4) | Standardized JSON Response, Auth Guard, Health Check |
+| **API & Security** | `backend/test/auth.test.ts` | ✅ PASS (9/9) | Standardized JSON Response, Auth Guard, OTP Verification, Password Reset |
+| **Task Collaboration & Chat** | `backend/test/collaboration.test.ts` | ✅ PASS (9/9) | Invite Code, Join Flow, Realtime Status Sync, Chat Discussion, Leave Task |
 | **Backend E2E Flow** | `backend/test/e2e.test.ts` | ✅ PASS (4/4) | Register ➔ Login ➔ Task & Subtasks CRUD ➔ Stats |
 | **RAG & Vector Search** | `backend/test/rag.test.ts` | ✅ PASS (2/2) | Text Chunking & L2-Normalized Vector Embeddings |
 | **Cron Email Reminder** | `backend/test/cron.test.ts` | ✅ PASS (4/4) | Timezone WIB/UTC Bounds, Auth Guard, H-3 & Overdue Dispatch |
@@ -220,9 +227,31 @@ test\auth.test.ts:
 ✓ API & Response Formatting Tests > should format standardized error response
 ✓ API & Response Formatting Tests > should return healthy status from root endpoint
 ✓ API & Response Formatting Tests > should reject unauthorized requests to protected routes
+✓ API & Response Formatting Tests > should process forgot-password request cleanly
+✓ API & Response Formatting Tests > should reject reset-password with invalid token
+✓ API & Response Formatting Tests > should complete full password reset flow with valid token
+✓ API & Response Formatting Tests > should reject registration with disposable email domain
+✓ API & Response Formatting Tests > should reject registration with nonexistent email domain
+
+test\collaboration.test.ts:
+✓ Task Collaboration & Discussion Chat Flow > should register and verify User A (Owner) and User B (Collaborator)
+✓ Task Collaboration & Discussion Chat Flow > should create a task as User A and generate invite code
+✓ Task Collaboration & Discussion Chat Flow > should allow User B to join task via invite code
+✓ Task Collaboration & Discussion Chat Flow > should show collaborative task in User B task list with isOwner=false
+✓ Task Collaboration & Discussion Chat Flow > should allow User B (collaborator) to update task status
+✓ Task Collaboration & Discussion Chat Flow > should sync subtask checklist toggle between User B (collaborator) and User A (owner)
+✓ Task Collaboration & Discussion Chat Flow > should list all collaborators correctly
+✓ Task Collaboration & Discussion Chat Flow > should send and retrieve chat messages between User A and User B
+✓ Task Collaboration & Discussion Chat Flow > should prevent User B from deleting task, but allow User B to leave task
+
+test\cron.test.ts:
+✓ Cron Daily Task Reminder (00:00 WIB / 17:00 UTC) > should calculate correct UTC bounds for Asia/Jakarta timezone
+✓ Cron Daily Task Reminder (00:00 WIB / 17:00 UTC) > should reject cron requests without valid CRON_SECRET authorization
+✓ Cron Daily Task Reminder (00:00 WIB / 17:00 UTC) > should reject cron requests with incorrect bearer token
+✓ Cron Daily Task Reminder (00:00 WIB / 17:00 UTC) > should accept cron requests with matching CRON_SECRET and execute reminders
 
 test\e2e.test.ts:
-✓ E2E Auth & Task Flow > should register new user
+✓ E2E Auth & Task Flow > should register new user and complete email verification
 ✓ E2E Auth & Task Flow > should login with registered credentials
 ✓ E2E Auth & Task Flow > should create a task with subtasks
 ✓ E2E Auth & Task Flow > should list tasks and calculate stats
@@ -231,10 +260,10 @@ test\rag.test.ts:
 ✓ RAG & Embedding Unit Tests > should construct standardized chunk text accurately
 ✓ RAG & Embedding Unit Tests > should generate valid normalized vector embedding
 
- 10 pass
+ 29 pass
  0 fail
- 38 expect() calls
-Ran 10 tests across 3 files. [10.97s]
+ 124 expect() calls
+Ran 29 tests across 5 files.
 ```
 
 #### 2. Frontend Browser E2E Suite (`npx playwright test`):
@@ -260,3 +289,4 @@ Running 1 test using 1 worker
 - [x] **Fase 3**: Integrasi WhatsApp Jadwal Prioritas, Database Profile Persistence, & UI/UX Refinements.
 - [x] **Fase 4**: Automated CI/CD Data Pipeline & Production Vercel + Neon DB Deployment.
 - [x] **Fase 5**: Integrasi Kalender RFC 5545 (Google, Apple, Outlook), Google Single Sign-On (SSO), Auto Notification Email Reminder H-3 via Cron Job, & Glassmorphism Hero Badges.
+- [x] **Fase 6**: Kolaborasi Tim Realtime, Invite Link Instan, Multi-user Task Sharing, & 1-Tab Chat Diskusi Terpadu pada AI Drawer.
