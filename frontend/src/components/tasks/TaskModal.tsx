@@ -296,7 +296,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm pl-3.5 pr-14 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold appearance-none transition-all"
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm pl-3.5 pr-16 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 cursor-pointer shadow-sm font-semibold appearance-none transition-all"
               >
                 <option value="">Tanpa Kategori</option>
                 {(categories || []).map((c) => (
@@ -311,7 +311,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
 
-              {/* Delete (X) button when a category is selected */}
+              {/* Delete button when a category is selected (always visible on desktop and mobile) */}
               {categoryId && onDeleteCategory && (
                 <button
                   type="button"
@@ -322,8 +322,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                       setCategoryId("");
                     }
                   }}
-                  className="absolute right-8 text-slate-400 hover:text-rose-500 hover:bg-slate-200/50 p-1 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                  className="absolute right-8.5 z-10 flex items-center justify-center text-rose-500 hover:text-rose-600 bg-rose-50/90 hover:bg-rose-100 p-1 rounded-lg transition-all shadow-xs"
                   title="Hapus Kategori"
+                  aria-label="Hapus Kategori"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
