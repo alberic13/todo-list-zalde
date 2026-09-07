@@ -1,28 +1,20 @@
-import { eq, and, desc, asc, inArray } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { db } from "../config/db";
-import { tasks, taskCollaborators, taskMessages, users } from "../models/schema";
+import { tasks, taskCollaborators } from "../models/schema";
 import crypto from "crypto";
+import { TaskAccessService } from "./taskAccess.service";
+import { TaskDiscussionService } from "./taskDiscussion.service";
+import type { TaskAccessCheckResult, TaskCollaboratorMember } from "./collaboration.types";
 
+export type { TaskAccessCheckResult, TaskCollaboratorMember } from "./collaboration.types";
+
+// ponytail: task collaboration & sharing orchestrator. discussion chat handled via TaskDiscussionService.
 export class CollaborationService {
   /**
    * Checks if user is owner or collaborator of task
    */
-  static async checkAccess(taskId: string, userId: string): Promise<{ isOwner: boolean; isCollaborator: boolean }> {
-    const task = await db.query.tasks.findFirst({
-      where: eq(tasks.id, taskId),
-    });
-
-    if (!task) return { isOwner: false, isCollaborator: false };
-    if (task.userId === userId) return { isOwner: true, isCollaborator: true };
-
-    const member = await db.query.taskCollaborators.findFirst({
-      where: and(eq(taskCollaborators.taskId, taskId), eq(taskCollaborators.userId, userId)),
-    });
-
-    return {
-      isOwner: false,
-      isCollaborator: Boolean(member),
-    };
+  static checkAccess(taskId: string, userId: string): Promise<TaskAccessCheckResult> {
+    return TaskAccessService.checkAccess(taskId, userId);
   }
 
   /**
@@ -107,7 +99,7 @@ export class CollaborationService {
   /**
    * Retrieves all members of a task (owner + collaborators)
    */
-  static async getCollaborators(taskId: string, userId: string) {
+  static async getCollaborators(taskId: string, userId: string): Promise<TaskCollaboratorMember[]> {
     const access = await this.checkAccess(taskId, userId);
     if (!access.isCollaborator) {
       throw new Error("Akses ditolak: Anda bukan anggota tugas ini.");
@@ -134,7 +126,7 @@ export class CollaborationService {
       orderBy: [asc(taskCollaborators.joinedAt)],
     });
 
-    const members = [
+    return [
       {
         id: task.user.id,
         userId: task.user.id,
@@ -163,8 +155,6 @@ export class CollaborationService {
         },
       })),
     ];
-
-    return members;
   }
 
   /**
@@ -201,59 +191,13 @@ export class CollaborationService {
   }
 
   /**
-   * Retrieves messages for a task
+   * Facade methods for backward compatibility
    */
-  static async getMessages(taskId: string, userId: string, limit = 50) {
-    const access = await this.checkAccess(taskId, userId);
-    if (!access.isCollaborator) {
-      throw new Error("Akses ditolak: Anda bukan anggota tugas ini.");
-    }
-
-    const messages = await db.query.taskMessages.findMany({
-      where: eq(taskMessages.taskId, taskId),
-      with: {
-        user: {
-          columns: { id: true, name: true, email: true },
-        },
-      },
-      orderBy: [asc(taskMessages.createdAt)],
-      limit,
-    });
-
-    return messages;
+  static getMessages(taskId: string, userId: string, limit = 50) {
+    return TaskDiscussionService.getMessages(taskId, userId, limit);
   }
 
-  /**
-   * Sends a message in a task discussion room
-   */
-  static async sendMessage(taskId: string, userId: string, content: string) {
-    const access = await this.checkAccess(taskId, userId);
-    if (!access.isCollaborator) {
-      throw new Error("Akses ditolak: Anda bukan anggota tugas ini.");
-    }
-
-    const cleanContent = content.trim();
-    if (!cleanContent) {
-      throw new Error("Isi pesan tidak boleh kosong.");
-    }
-
-    const [newMsg] = await db
-      .insert(taskMessages)
-      .values({
-        taskId,
-        userId,
-        content: cleanContent,
-      })
-      .returning();
-
-    const sender = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-      columns: { id: true, name: true, email: true },
-    });
-
-    return {
-      ...newMsg,
-      user: sender || { id: userId, name: "User", email: "" },
-    };
+  static sendMessage(taskId: string, userId: string, content: string) {
+    return TaskDiscussionService.sendMessage(taskId, userId, content);
   }
 }
