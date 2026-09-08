@@ -7,7 +7,6 @@ import { TaskBasicInfoSection } from "./modal/TaskBasicInfoSection";
 import { TaskStatusPriorityFields } from "./modal/TaskStatusPriorityFields";
 import { TaskCategorySection } from "./modal/TaskCategorySection";
 import { TaskSubtasksSection } from "./modal/TaskSubtasksSection";
-import { TaskCollaborationSection } from "./modal/TaskCollaborationSection";
 import { TaskModalActions } from "./modal/TaskModalActions";
 import { useTaskModalForm } from "./modal/useTaskModalForm";
 
@@ -39,8 +38,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onToggleSubtask,
   onAddSubtask,
   onDeleteSubtask,
-  onLeaveTask,
-  onOpenChat,
+  onLeaveTask: _onLeaveTask,
+  onOpenChat: _onOpenChat,
 }) => {
   const {
     isOwner,
@@ -145,18 +144,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           onToggleSubtask={handleToggleSubtask}
           onRemoveSubtask={handleRemoveSubtask}
         />
-
-        {/* Collaboration & Discussion Section */}
-        {taskToEdit && (
-          <TaskCollaborationSection
-            task={taskToEdit}
-            isOwner={isOwner}
-            isOpen={isOpen}
-            onCloseModal={onClose}
-            onOpenChat={onOpenChat}
-            onLeaveTask={onLeaveTask}
-          />
-        )}
 
         {/* Modal Actions */}
         <TaskModalActions
