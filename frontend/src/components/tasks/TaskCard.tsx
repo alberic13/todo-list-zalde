@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Task } from "../../types";
-import { GripVertical, CheckSquare } from "lucide-react";
+import { GripVertical, CheckSquare, ChevronDown } from "lucide-react";
 import { TaskCardMenu } from "./card/TaskCardMenu";
 import { TaskCardSubtasks } from "./card/TaskCardSubtasks";
 import { TaskCardCollaborators } from "./card/TaskCardCollaborators";
@@ -19,14 +19,10 @@ export interface TaskCardProps {
 
 function getPriorityDot(p: string) {
   switch (p) {
-    case "urgent":
-      return "bg-rose-500 shadow-rose-500/50 shadow-sm ring-2 ring-rose-200";
-    case "high":
-      return "bg-amber-500 ring-2 ring-amber-200";
-    case "medium":
-      return "bg-sky-500 ring-2 ring-sky-200";
-    default:
-      return "bg-slate-400 ring-2 ring-slate-200";
+    case "urgent": return "bg-rose-500 shadow-rose-500/50 shadow-sm ring-2 ring-rose-200";
+    case "high": return "bg-amber-500 ring-2 ring-amber-200";
+    case "medium": return "bg-sky-500 ring-2 ring-sky-200";
+    default: return "bg-slate-400 ring-2 ring-slate-200";
   }
 }
 
@@ -42,6 +38,8 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDragged, setIsDragged] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const dragOccurredRef = useRef(false);
 
   // ponytail: matchMedia check covers mobile/desktop split; add touch-action or dnd-kit when complex touch gestures required
   const [isDesktop, setIsDesktop] = useState(() =>
@@ -64,6 +62,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
       e.preventDefault();
       return;
     }
+    dragOccurredRef.current = true;
     e.dataTransfer.setData("text/plain", task.id);
     e.dataTransfer.effectAllowed = "move";
     setIsDragged(true);
@@ -71,20 +70,34 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
 
   const handleDragEnd = () => {
     setIsDragged(false);
+    setTimeout(() => { dragOccurredRef.current = false; }, 100);
   };
+
+  const handleCardClick = () => {
+    if (dragOccurredRef.current) return;
+    setIsExpanded((prev) => !prev);
+  };
+
+  // Di mobile: ekspansi murni dikontrol oleh toggle tap isExpanded. Di desktop: didukung juga oleh hover.
+  const shouldExpand = isExpanded || (isDesktop && isHovered) || isMenuOpen;
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
       draggable={isDesktop}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onDoubleClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      className={`group relative rounded-2xl bg-white border border-slate-200/80 p-3 transition-all duration-300 ease-out hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] hover:border-slate-300/90 hover:bg-white select-none ${
+      onMouseEnter={() => { if (isDesktop) setIsHovered(true); }}
+      onMouseLeave={() => { if (isDesktop) setIsHovered(false); }}
+      className={`group relative rounded-2xl bg-white border border-slate-200/80 p-3 transition-all duration-300 ease-out hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] hover:border-slate-300/90 hover:bg-white select-none cursor-pointer active:scale-[0.99] active:bg-slate-50/80 ${
         isDesktop ? "cursor-grab active:cursor-grabbing" : ""
       } ${
         isDragged
@@ -131,6 +144,12 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
             </span>
           )}
 
+          <ChevronDown
+            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 md:hidden shrink-0 ${
+              shouldExpand ? "rotate-180 text-indigo-600" : ""
+            }`}
+          />
+
           <TaskCardMenu
             task={task}
             onEdit={onEdit}
@@ -146,9 +165,9 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(({
       {/* 2. Expandable Body Details */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isHovered || isMenuOpen
-            ? "max-h-96 opacity-100 mt-2.5 pt-2.5 border-t border-slate-100"
-            : "max-h-0 opacity-0 group-hover:max-h-96 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-2.5 group-hover:border-t group-hover:border-slate-100"
+          shouldExpand
+            ? "max-h-[800px] opacity-100 mt-2.5 pt-2.5 border-t border-slate-100"
+            : "max-h-0 opacity-0 md:group-hover:max-h-[800px] md:group-hover:opacity-100 md:group-hover:mt-2.5 md:group-hover:pt-2.5 md:group-hover:border-t md:group-hover:border-slate-100"
         }`}
       >
         {task.description && (
