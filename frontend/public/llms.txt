@@ -1,21 +1,20 @@
 # Zalde Todo AI
 
-> Fullstack AI-Powered Todo List & Productivity Suite with RAG Copilot, semantic search, and task breakdown.
+> Fullstack AI-Powered Todo List & Productivity Suite with RAG Copilot, semantic search, and automated task breakdown.
 
-## Overview
 Zalde Todo AI is a modern task management web application designed for individual and team productivity. It integrates artificial intelligence with PostgreSQL vector search (pgvector) to assist users with automated task breakdown, semantic querying of tasks, and collaborative workflows.
 
-## Key Capabilities & Features
-- **Task Management**: Create, update, organize, prioritize, and track tasks and subtasks.
-- **AI Task Breakdown**: Decomposes complex task objectives into actionable, structured subtasks using Google Gemini AI.
-- **RAG Copilot & Semantic Search**: Search tasks semantically using natural language embeddings and interact with an AI productivity copilot.
-- **Calendar Integration**: Export live iCalendar (.ics) feeds compatible with Google Calendar, Apple Calendar, and Microsoft Outlook.
-- **Collaboration**: Task-level shared workspace and real-time discussion chat for teamwork.
+## Links
 
-## Technical Architecture
-- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS v4, Lucide Icons.
-- **Backend API**: Elysia.js, Bun runtime, PostgreSQL with pgvector, Drizzle ORM.
-- **Authentication**: JWT token-based auth and Google OAuth 2.0.
+- [App Home](https://todo-list-zalde.vercel.app/): Main application workspace, task boards, and AI copilot interface.
+- [API Documentation](https://todo-list-zalde.vercel.app/swagger): Interactive OpenAPI and RESTful API endpoints reference.
+- [Sitemap](https://todo-list-zalde.vercel.app/sitemap.xml): XML sitemap indexing all canonical routes and public pages.
+- [Robots Configuration](https://todo-list-zalde.vercel.app/robots.txt): Crawler rules and sitemap directives for search engines and AI user-agents.
 
-## API Documentation
-The backend exposes OpenAPI / Swagger documentation at `/swagger`.
+## Core Capabilities
+
+- [Task Management](https://todo-list-zalde.vercel.app/#tasks): Create, update, prioritize, and manage subtasks.
+- [AI Breakdown](https://todo-list-zalde.vercel.app/#ai-breakdown): Automated multi-step task decomposition with Gemini AI.
+- [Semantic Search](https://todo-list-zalde.vercel.app/#semantic-search): Natural language task search powered by pgvector embeddings.
+- [Calendar Feeds](https://todo-list-zalde.vercel.app/#calendar): Export live iCal (.ics) feeds for Google, Apple, and Outlook calendars.
+- [Collaboration](https://todo-list-zalde.vercel.app/#collaboration): Real-time shared workspace and task discussion.
