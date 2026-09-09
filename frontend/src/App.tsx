@@ -1,11 +1,14 @@
 import React from "react";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
-import { AuthPage } from "./pages/AuthPage";
+import { Loader2, CheckSquare } from "lucide-react";
+
+const AuthPage = React.lazy(() =>
+  import("./pages/AuthPage").then((module) => ({ default: module.AuthPage }))
+);
 
 const Dashboard = React.lazy(() => 
-  import("./pages/Dashboard").then(module => ({ default: module.Dashboard }))
+  import("./pages/Dashboard").then((module) => ({ default: module.Dashboard }))
 );
-import { Loader2, CheckSquare } from "lucide-react";
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -45,7 +48,18 @@ const AppContent: React.FC = () => {
     }>
       <Dashboard />
     </React.Suspense>
-  ) : <AuthPage />;
+  ) : (
+    <React.Suspense fallback={
+      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4">
+        <div className="flex items-center gap-2 text-slate-400 text-xs">
+          <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+          <span>Memuat portal...</span>
+        </div>
+      </div>
+    }>
+      <AuthPage />
+    </React.Suspense>
+  );
 };
 
 export function App() {
