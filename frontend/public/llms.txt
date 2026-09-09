@@ -1,0 +1,21 @@
+# Zalde Todo AI
+
+> Fullstack AI-Powered Todo List & Productivity Suite with RAG Copilot, semantic search, and task breakdown.
+
+## Overview
+Zalde Todo AI is a modern task management web application designed for individual and team productivity. It integrates artificial intelligence with PostgreSQL vector search (pgvector) to assist users with automated task breakdown, semantic querying of tasks, and collaborative workflows.
+
+## Key Capabilities & Features
+- **Task Management**: Create, update, organize, prioritize, and track tasks and subtasks.
+- **AI Task Breakdown**: Decomposes complex task objectives into actionable, structured subtasks using Google Gemini AI.
+- **RAG Copilot & Semantic Search**: Search tasks semantically using natural language embeddings and interact with an AI productivity copilot.
+- **Calendar Integration**: Export live iCalendar (.ics) feeds compatible with Google Calendar, Apple Calendar, and Microsoft Outlook.
+- **Collaboration**: Task-level shared workspace and real-time discussion chat for teamwork.
+
+## Technical Architecture
+- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS v4, Lucide Icons.
+- **Backend API**: Elysia.js, Bun runtime, PostgreSQL with pgvector, Drizzle ORM.
+- **Authentication**: JWT token-based auth and Google OAuth 2.0.
+
+## API Documentation
+The backend exposes OpenAPI / Swagger documentation at `/swagger`.
