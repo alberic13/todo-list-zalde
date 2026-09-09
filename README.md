@@ -12,6 +12,10 @@ Aplikasi manajemen tugas modern berbasis **AI & RAG (Retrieval-Augmented Generat
 [![iCalendar](https://img.shields.io/badge/iCalendar-RFC%205545%20(Webcal)-FF6B6B.svg?logo=google-calendar&logoColor=white)](https://tools.ietf.org/html/rfc5545)
 [![Google Calendar](https://img.shields.io/badge/Google%20Calendar-Auto%20Sync-4285F4.svg?logo=google-calendar&logoColor=white)](https://calendar.google.com/)
 [![Playwright](https://img.shields.io/badge/Playwright-E2E%20Testing-2EAD33.svg?logo=playwright&logoColor=white)](https://playwright.dev)
+[![PageSpeed Desktop](https://img.shields.io/badge/PageSpeed%20Desktop-99%2F100-brightgreen.svg?logo=googlechrome&logoColor=white)](https://pagespeed.web.dev/analysis?url=https%3A%2F%2Ftodo-list-zalde.vercel.app%2F)
+[![PageSpeed Mobile](https://img.shields.io/badge/PageSpeed%20Mobile-88%2F100-brightgreen.svg?logo=googlechrome&logoColor=white)](https://pagespeed.web.dev/analysis?url=https%3A%2F%2Ftodo-list-zalde.vercel.app%2F)
+[![SEO](https://img.shields.io/badge/SEO-100%2F100-brightgreen.svg)](https://pagespeed.web.dev/analysis?url=https%3A%2F%2Ftodo-list-zalde.vercel.app%2F)
+[![Accessibility](https://img.shields.io/badge/A11y-100%2F100-brightgreen.svg)](https://pagespeed.web.dev/analysis?url=https%3A%2F%2Ftodo-list-zalde.vercel.app%2F)
 [![Vercel Deployment](https://img.shields.io/badge/Deploy-Vercel-000000.svg?logo=vercel)](https://todo-list-zalde.vercel.app/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -283,6 +287,28 @@ Running 1 test using 1 worker
 
 ---
 
+## ⚡ Hasil Uji Audit Performa & SEO (Google PageSpeed Insights)
+
+Website telah diuji secara menyeluruh menggunakan **Google PageSpeed Insights (Lighthouse Engine)** pada URL produksi [https://todo-list-zalde.vercel.app/](https://todo-list-zalde.vercel.app/) dengan hasil audit yang luar biasa (*Near-Perfect Score*):
+
+| Kategori Audit | Skor Desktop | Skor Mobile | Status | Keterangan Teknis |
+|---|---|---|---|---|
+| ⚡ **Performance** | **99 / 100** | **88 / 100** | 🟢 Optimal | Fast TTFB, LCP instan, bundle JS terkompresi (~88 kB Gzip) |
+| ♿ **Accessibility** | **100 / 100** | **100 / 100** | 🟢 Perfect | Struktur ARIA semantik, kontras warna tinggi, & ramah *screen reader* |
+| 🛡️ **Best Practices** | **100 / 100** | **100 / 100** | 🟢 Perfect | Protokol keamanan HTTPS, standar web modern, & zero browser console error |
+| 🔍 **SEO** | **100 / 100** | **100 / 100** | 🟢 Perfect | Meta tags deskriptif, Open Graph, canonical URL, sitemap & crawlable |
+| 🤖 **Agentic Browsing** | **3 / 3** | **3 / 3** | 🟢 Perfect | Teroptimasi untuk AI Web Crawler & LLM agents via `llms.txt` |
+
+### 📸 Bukti Pengujian Google PageSpeed Insights:
+
+#### 🖥️ Desktop Report:
+![Google PageSpeed Insights Desktop Report](docs/images/pagespeed-desktop.png)
+
+#### 📱 Mobile Report:
+![Google PageSpeed Insights Mobile Report](docs/images/pagespeed-mobile.png)
+
+---
+
 ## 📅 Roadmap Rilis
 
 - [x] **Fase 1**: Core Foundation, Auth JWT, Drizzle Schema, Task CRUD, List & Kanban View.
@@ -292,3 +318,4 @@ Running 1 test using 1 worker
 - [x] **Fase 5**: Integrasi Kalender RFC 5545 (Google, Apple, Outlook), Google Single Sign-On (SSO), Auto Notification Email Reminder H-3 via Cron Job, & Glassmorphism Hero Badges.
 - [x] **Fase 6**: Kolaborasi Tim Realtime, Invite Link Instan, Multi-user Task Sharing, & 1-Tab Chat Diskusi Terpadu pada AI Drawer.
 - [x] **Fase 7**: Modular SRP Architecture & Zero-Monolith Standards (Colocated subcomponents & custom hooks, strict line limits & 100% type-safe).
+- [x] **Fase 8**: Production Performance & Technical SEO Audit (Google PageSpeed 99/100, A11y 100/100, Best Practices 100/100, SEO 100/100, Agentic 3/3).
