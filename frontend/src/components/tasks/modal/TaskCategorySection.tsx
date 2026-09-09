@@ -94,29 +94,51 @@ export const TaskCategorySection: React.FC<TaskCategorySectionProps> = ({
       </div>
 
       {showAddCat && !disabled && (
-        <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 space-y-2 animate-in fade-in duration-150 mt-2">
-          <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <Tag className="w-3.5 h-3.5 text-indigo-600" /> Tambah Kategori
-          </p>
+        <div className="p-3 rounded-xl bg-slate-100 border border-slate-200/90 space-y-2.5 animate-in fade-in duration-150 mt-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-indigo-600" /> Tambah Kategori
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowAddCat(false)}
+              className="text-[11px] text-slate-400 hover:text-slate-600 font-semibold"
+            >
+              Batal
+            </button>
+          </div>
+
           <div className="flex items-center gap-2">
             <input
               type="text"
               placeholder="Nama kategori..."
               value={newCatName}
               onChange={(e) => setNewCatName(e.target.value)}
-              className="flex-1 rounded-xl bg-white border border-slate-300 px-3 py-1.5 text-xs text-slate-900 font-medium"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleCreateCategory();
+                }
+              }}
+              autoFocus
+              className="flex-1 min-w-0 rounded-lg bg-white border border-slate-300 px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
             />
             <input
               type="color"
               value={newCatColor}
               onChange={(e) => setNewCatColor(e.target.value)}
-              className="w-8 h-8 rounded-xl bg-transparent border-0 cursor-pointer p-0"
+              title="Pilih warna kategori"
+              className="w-7 h-7 shrink-0 rounded-lg bg-white border border-slate-300 p-0.5 cursor-pointer shadow-xs"
             />
+          </div>
+
+          <div className="flex justify-end">
             <Button
               type="button"
               size="sm"
               onClick={handleCreateCategory}
               disabled={!newCatName.trim()}
+              className="w-full sm:w-auto text-xs py-1 px-4 h-7.5"
             >
               Simpan
             </Button>
