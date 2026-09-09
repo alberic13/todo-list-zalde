@@ -32,8 +32,6 @@ Aplikasi manajemen tugas modern berbasis **AI & RAG (Retrieval-Augmented Generat
 ### 👤 Kredensial Akun Demo (Pre-seeded di Neon DB):
 - **Email**: `demo@zalde.com`
 - **Password**: `Password123!`
-- *(Tersedia juga tombol **Login Cepat** di halaman login untuk autofill otomatis)*
-
 ---
 
 ## 🛠️ Tech Stack
