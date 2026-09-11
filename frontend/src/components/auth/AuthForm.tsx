@@ -193,7 +193,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ showForm, onHideForm }) => {
       </div>
 
       <div className="text-center text-xs text-slate-400 lg:hidden pt-4">
-        © 2026 Zalde Productivity Suite. Seluruh hak cipta dilindungi.
+        © 2026 Developed by{" "}
+        <a
+          href="https://github.com/alberic13"
+          target="_blank"
+          rel="nofollow author noopener noreferrer"
+          className=""
+        >
+          Muchammad Zalde Zahwa Putra
+        </a>
       </div>
 
       <ForgotPasswordModal

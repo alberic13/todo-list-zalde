@@ -137,7 +137,17 @@ export const AuthHero: React.FC<AuthHeroProps> = ({ showForm, onShowForm }) => {
       
       {/* Left Bottom Legal */}
       <footer className={`relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-500 transition-all ${showForm ? "" : "justify-center gap-8"}`}>
-        <span>© 2026 ZALDE PRODUCTIVITY SUITE</span>
+        <span>
+          © 2026 Developed by{" "}
+          <a
+            href="https://github.com/alberic13"
+            target="_blank"
+            rel="nofollow author noopener noreferrer"
+            className="text-stone-300 hover:text-white font-medium transition-colors"
+          >
+            Muchammad Zalde Zahwa Putra
+          </a>
+        </span>
       </footer>
     </section>
   );
