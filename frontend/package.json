@@ -2,6 +2,10 @@
   "name": "frontend",
   "private": true,
   "version": "1.0.0",
+  "author": {
+    "name": "Muchammad Zalde Zahwa Putra",
+    "url": "https://github.com/alberic13"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -2,6 +2,10 @@
   "name": "todo-list-zalde",
   "version": "1.0.0",
   "description": "Enterprise-grade Fullstack Todo App with React 19, Tailwind v4, Bun, Elysia, Drizzle ORM, pgvector RAG, Playwright E2E & CI/CD",
+  "author": {
+    "name": "Muchammad Zalde Zahwa Putra",
+    "url": "https://github.com/alberic13"
+  },
   "keywords": [
     "react19",
     "tailwind-v4",
